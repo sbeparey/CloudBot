@@ -34,8 +34,8 @@ feed_subs = Table(
     PrimaryKeyConstraint('channel', 'subs')
 )
 
-@asyncio.coroutine
-@hook.on_start()
+#@asyncio.coroutine
+#@hook.on_start()
 def initial_load(db, message):
     """ When the script starts, build the url and cache the initial feed """
     global subs, status
@@ -50,7 +50,7 @@ def initial_load(db, message):
         url = '{}{}/new/.rss?sort=new'.format(t, dbsubs)
         get_feed(url, chan)
 
-@hook.periodic(600, initial_interval=600)
+#@hook.periodic(600, initial_interval=600)
 def refresh_feed(db):
     for chan in subs:
         url = '{}{}/new/.rss?sort=new'.format(t, '+'.join(subs[chan]))
@@ -75,7 +75,7 @@ def update_feed(url, chan):
                     cache[chan].append(new_item)
                     feed[chan].append(new_item)
 
-@hook.periodic(60, initial_interval=60)
+#@hook.periodic(60, initial_interval=60)
 def display_feed_item(bot):
     global feed
     conn = bot.connections['snoonet']
