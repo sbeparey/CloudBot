@@ -280,10 +280,10 @@ def befriend(nick, chan, message, db, conn, notice):
         return "There is no hunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
         if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} You tried befriending a non-existent monster, that's fucking creepy.".format(chan, nick)
+            out = "KICK {} {} You tried befriending a non-existent monster, that's really creepy.".format(chan, nick)
             conn.send(out)
             return
-        return "You tried befriending a non-existent monster, that's fucking creepy."
+        return "You tried befriending a non-existent monster, that's really creepy."
     else:
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']

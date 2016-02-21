@@ -60,7 +60,7 @@ def get_weather(text):
 
     "current" is a dictionary with three elements: "temperature" (an integer),
     "weather" (a list of descriptive elements about the weather, e.g., "ITS
-    FUCKING HOT", which may be coupled with something such as "AND THUNDERING")
+    FREAKING HOT", which may be coupled with something such as "AND THUNDERING")
     and "remark" (a string printed by the server which is meant to be witty but
     is sometimes not. each to their own, I guess).
 
@@ -152,7 +152,7 @@ def get_weather(text):
                                        "low": lows[i],
                                        "weather": forecasts[i]})
     
-    tfw = ("The Fucking Weather for " "({0})".format(return_val["location"])) + ("{0}{1}?! {2}".format(return_val["current"]["temperature"],
+    tfw = ("The Freaking Weather for " "({0})".format(return_val["location"])) + ("{0}{1}?! {2}".format(return_val["current"]["temperature"],
                                     DEGREE_SYMBOL,
                                     return_val["current"]["weather"][0])) + " " + (return_val["current"]["remark"])
     return tfw

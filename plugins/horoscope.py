@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from cloudbot import hook
 from cloudbot.util import formatting
 
+opt_out = ['#islam', '#islam2', '#islamadmins', '#quran', '#sy']
 
 @hook.on_start()
 def init(db):
@@ -14,8 +15,11 @@ def init(db):
 
 
 @hook.command(autohelp=False)
-def horoscope(text, db, bot, notice, nick):
+def horoscope(text, db, bot, notice, nick, chan):
     """<sign> - get your horoscope"""
+	
+    if chan in opt_out:
+        return chan + " does not allow horoscope. Do you really think your destiny is decided based on the time you were born?"
 
     headers = {'User-Agent': bot.user_agent}
 

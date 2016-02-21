@@ -5,6 +5,7 @@ import asyncio
 
 from cloudbot import hook
 
+opt_out = ['#islam', '#islam2', '#islamadmins', '#quran', '#sy']
 
 @hook.on_start()
 def load_fortunes(bot):
@@ -16,6 +17,10 @@ def load_fortunes(bot):
 
 @asyncio.coroutine
 @hook.command(autohelp=False)
-def fortune():
+def fortune(chan):
     """- hands out a fortune cookie"""
+	
+    if chan in opt_out:
+        return chan + " does not allow foretelling of fortunes. Work hard and make your own fortunes!"
+	
     return random.choice(fortunes)

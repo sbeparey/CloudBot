@@ -8,6 +8,8 @@ import re
 from cloudbot import hook
 from cloudbot.util import textgen
 
+opt_out = ['#islam', '#islam2', '#islamadmins', '#quran', '#sy']
+
 nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}]*$", re.I)
 
 cakes = ['Chocolate', 'Ice Cream', 'Angel', 'Boston Cream', 'Birthday', 'Bundt', 'Carrot', 'Coffee', 'Devils', 'Fruit',
@@ -202,6 +204,26 @@ def taco(text, action):
 
 @asyncio.coroutine
 @hook.command
+def drink(text, action):
+    """<user> - give a drink to <user>"""
+    user = text.strip()
+
+    if not is_valid(user):
+        return "I can't give drinks to that user."
+
+    r = random.randint(1,2)
+
+    if r == 1:
+        generator = textgen.TextGenerator(coffee_data["templates"], coffee_data["parts"],
+                                      variables={"user": user})
+    else:
+        generator = textgen.TextGenerator(tea_data["templates"], tea_data["parts"],
+                                      variables={"user": user})
+
+    action(generator.generate_string())
+
+@asyncio.coroutine
+@hook.command
 def coffee(text, action):
     """<user> - give coffee to <user>"""
     user = text.strip()
@@ -272,9 +294,12 @@ def keto(text, action):
 
 @asyncio.coroutine
 @hook.command
-def beer(text, action):
+def beer(text, chan, action):
     """<user> - give beer to <user>"""
     user = text.strip()
+
+    if chan in opt_out:
+        return chan + " does not allow consumptions of alcohol. Have a cup of tea or coffee instead."
 
     if not is_valid(user):
         return "I can't give beer to that user."
@@ -357,8 +382,11 @@ def brekkie(text, action):
 
 @asyncio.coroutine
 @hook.command("doobie")
-def doobie(text, action):
+def doobie(text, action, chan):
     """<user> - pass the doobie to <user>"""
+    if chan in opt_out:
+        return "Drugs are bad, mmmmmmmmkay?"
+	
     user = text.strip()
 
     if not is_valid(user):

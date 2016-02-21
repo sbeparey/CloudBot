@@ -148,7 +148,7 @@ def tell_cmd(text, nick, db, notice, conn):
     """tell <nick> <message> -- Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
     if query[0].lower() == "paradox":
-        return "Paradox doesn't want to hear from me. Just send him a fucking message."
+        return "Paradox doesn't want to hear from me. Just send him a  message."
     if len(query) != 2:
         prefix = conn.config("command_prefix")
         notice(prefix[0] + tell_cmd.__doc__)
@@ -167,9 +167,9 @@ def tell_cmd(text, nick, db, notice, conn):
         notice("Invalid nick '{}'.".format(target))
         return
 
-    if not re.match("^[a-z0-9_|.\-\]\[]*$", target.lower()):
-        notice("Invalid nick '{}'.".format(target))
-        return
+    # if not re.match("^[a-z0-9_|.\-\]\[]*$", target.lower()):
+    #     notice("Invalid nick '{}'.".format(target))
+    #     return
 
     if count_unread(db, conn.name, target) >= 10:
         notice("Sorry, {} has too many messages queued already.".format(target))

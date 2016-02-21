@@ -12,6 +12,7 @@ search_pages = defaultdict(list)
 table = Table(
     'grab',
     database.metadata,
+    Column('id', Integer),
     Column('name', String),
     Column('time', String),
     Column('quote', String),
@@ -26,6 +27,7 @@ def load_cache(db):
     global grab_cache
     grab_cache = {}
     for row in db.execute(table.select().order_by(table.c.time)):
+        id = row["id"]
         name = row["name"].lower()
         quote = row["quote"]
         chan = row["chan"]

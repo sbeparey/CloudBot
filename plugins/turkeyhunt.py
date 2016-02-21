@@ -3,21 +3,19 @@ import re
 import operator
 
 from time import time
-
 from collections import defaultdict
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc
 from sqlalchemy.sql import select
-
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database
 
-duck_tail = "・゜゜・。。・゜゜"
-duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
-duck_noise = ["QUACK!", "FLAP FLAP!", "quack!"]
+duck = [" 🐣🐤🐥 ", " 🐓🐔 ", " 🐥🐤🐣 ", " 🐔🐓 " ]
+duck_tail = ["・゜゜・。。・゜゜", "←~∋(｡Ψ▼ｰ▼)∈", "∋━━o(｀∀´oメ）～→", "(˼●̙̂ ̟ ̟̎ ̟ ̘●̂˻)", "(((༼•̫͡•༽)))"]
+duck_noise = ["yelp!", "GOBBLE GOBBLE", "glou glou!"]
 
 table = Table(
-    'duck_hunt',
+    'turkey_hunt',
     database.metadata,
     Column('network', String),
     Column('name', String),
@@ -28,7 +26,7 @@ table = Table(
     )
 
 optout = Table(
-    'nohunt',
+    'turkey_nohunt',
     database.metadata,
     Column('network', String),
     Column('chan', String),
@@ -48,13 +46,12 @@ game_status structure
             'no_duck_kick': 0|1,
             'duck_time': 'float', 
             'shoot_time': 'float',
-            'messages': integer,
+			'messages': integer,
             'masks' : list
         }
     }
 }
 """
-
 MSG_DELAY = 10
 MASK_REQ = 3
 scripters = defaultdict(int)
@@ -63,7 +60,7 @@ game_status = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
 @hook.on_start()
 def load_optout(db):
-    """load a list of channels duckhunt should be off in. Right now I am being lazy and not
+    """load a list of channels turkeyhunt should be off in. Right now I am being lazy and not
     differentiating between networks this should be cleaned up later."""
     global opt_out
     opt_out = []
@@ -72,21 +69,21 @@ def load_optout(db):
         for row in chans:
             chan = row["chan"]
             opt_out.append(chan)
+			
+#@hook.event([EventType.message, EventType.action], singlethread=True)
+# def incrementMsgCounter(event, conn):
+    # """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking."""
+    # global game_status
+    # if event.chan in opt_out:
+        # return
+    # if game_status[conn.name][event.chan]['game_on'] == 1 and game_status[conn.name][event.chan]['duck_status'] == 0:
+        # game_status[conn.name][event.chan]['messages'] += 1
+        # if event.host not in game_status[conn.name][event.chan]['masks']:
+            # game_status[conn.name][event.chan]['masks'].append(event.host)
 
-@hook.event([EventType.message, EventType.action], singlethread=True)
-def incrementMsgCounter(event, conn):
-    """Increment the number of messages said in an active game channel. Also keep track of the unique masks that are speaking."""
-    global game_status
-    if event.chan in opt_out:
-        return
-    if game_status[conn.name][event.chan]['game_on'] == 1 and game_status[conn.name][event.chan]['duck_status'] == 0:
-        game_status[conn.name][event.chan]['messages'] += 1
-        if event.host not in game_status[conn.name][event.chan]['masks']:
-            game_status[conn.name][event.chan]['masks'].append(event.host)
-
-@hook.command("starthunt", autohelp=False)
+# @hook.command("starthunt", autohelp=False)
 def start_hunt(bot, chan, message, conn):
-    """This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
+    """This command starts a turkey hunt in your channel, to stop the hunt use .stophunt"""
     global game_status
     if chan in opt_out:
         return
@@ -94,54 +91,54 @@ def start_hunt(bot, chan, message, conn):
         return "No hunting by yourself, that isn't safe."
     check = game_status[conn.name][chan]['game_on']
     if check:
-        return "there is already a game running in {}.".format(chan)
+        return "there is already a game running in {}. Use .gobble (.gob) to gobble them up or .free (.fre) to set them free.".format(chan)
     else:
         game_status[conn.name][chan]['game_on'] = 1
     set_ducktime(chan, conn)
-    message("Ducks have been spotted nearby. See how many you can shoot or save. use .bang to shoot or .befriend to save them. NOTE: Ducks now appear as a function of time and channel activity.", chan)
+    message("Turkeys have been spotted nearby. See how many you can gobble or free. use .gobble to eat or .free to set them free. NOTE: Turkeys now appear as a function of time and channel activity.", chan)
 
 def set_ducktime(chan, conn):
     global game_status
-    game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
+    game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 1800)
     #game_status[conn.name][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
     game_status[conn.name][chan]['duck_status'] = 0
-    # let's also reset the number of messages said and the list of masks that have spoken.
     game_status[conn.name][chan]['messages'] = 0
     game_status[conn.name][chan]['masks'] = []
     return
 
-@hook.command("stophunt", autohelp=False)
+# @hook.command("stophunt", autohelp=False)
 def stop_hunt(chan, conn):
-    """This command stops the duck hunt in your channel. Scores will be preserved"""
+    """This command stops the turkey hunt in your channel. Scores will be preserved"""
     global game_status
     if chan in opt_out:
         return
     if game_status[conn.name][chan]['game_on']:
         game_status[conn.name][chan]['game_on'] = 0
-        return "the game has been stopped."
+        return "The hunt has been stopped."
     else:
-        return "There is no game running in {}.".format(chan)
+        return "There is no turkey hunt running in {}.".format(chan)
 
-@hook.command("duckkick")
+# @hook.command("turkeykick")
 def no_duck_kick(text, chan, conn, notice):
-    """If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
+    """If the bot has OP or half-op in the channel you can specify .turkeykick enable|disable so that people are kicked for gobbling or freeing a non-existent turkey. Default is off."""
     global game_status
     if chan in opt_out:
         return
     if text.lower() == 'enable':
         game_status[conn.name][chan]['no_duck_kick'] = 1
-        return "users will now be kicked for shooting or befriending non-existent ducks. The bot needs to have appropriate flags to be able to kick users for this to work."
+        return "users will now be kicked for gobbling or freeing non-existent turkeys. The bot needs to have appropriate flags to be able to kick users for this to work."
     elif text.lower() == 'disable':
         game_status[conn.name][chan]['no_duck_kick'] = 0
-        return "kicking for non-existent ducks has been disabled."
+        return "kicking for non-existent turkeys has been disabled."
     else:
         notice(no_duck_kick.__doc__)
         return
 
 def generate_duck():
-    """Try and randomize the duck message so people can't highlight on it/script against it."""
-    rt = random.randint(1, len(duck_tail) - 1)
-    dtail = duck_tail[:rt] + u' \u200b ' + duck_tail[rt:]
+    """Try and randomize the turkey message so people can't highlight on it/script against it."""
+    dtail = random.choice(duck_tail)
+    rt = random.randint(1, len(dtail) - 1)
+    dtail = dtail[:rt] + u' \u200b ' + dtail[rt:]
     dbody = random.choice(duck)
     rb = random.randint(1, len(dbody) - 1)
     dbody = dbody[:rb] + u'\u200b' + dbody[rb:]
@@ -151,7 +148,7 @@ def generate_duck():
     return (dtail, dbody, dnoise)
 
 
-@hook.periodic(11, initial_interval=11)
+# @hook.periodic(11, initial_interval=11)
 def deploy_duck(message, bot):
     global game_status
     for network in game_status:
@@ -182,7 +179,7 @@ def deploy_duck(message, bot):
 
 
 def hit_or_miss(deploy, shoot):
-    """This function calculates if the befriend or bang will be successful."""
+    """This function calculates if the freeing or gobbling will be successful."""
     if shoot - deploy < 1:
         return .05
     elif 1 <= shoot - deploy <= 7:
@@ -230,24 +227,24 @@ def dbupdate(nick, chan, db, conn, shoot, friend):
         db.execute(query)
         db.commit()
 
-@hook.command("bang", autohelp=False)
+# @hook.command("gob", "gobble", autohelp=False)
 def bang(nick, chan, message, db, conn, notice):
-    """when there is a duck on the loose use this command to shoot it."""
+    """when a wild turkey appears, you can use this command to gobble it up."""
     global game_status, scripters
     if chan in opt_out:
         return
     network = conn.name
     score = ""
     out = ""
-    miss = ["WHOOSH! You missed the duck completely!", "Your gun jammed!", "Better luck next time.", "WTF!? Who are you Dick Cheney?" ]
+    miss = ["WHOOSH! You totally missed the turkey!", "You tripped and fell!", "Better luck next time.", "Good thing this is just an IRC game otherwise you'd starve!" ]
     if not game_status[network][chan]['game_on']:
         return "There is no activehunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
         if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} There is no duck! What are you shooting at?".format(chan, nick)
+            out = "KICK {} {} There is no turkey! What are you gobbling?".format(chan, nick)
             conn.send(out)
             return
-        return "There is no duck. What are you shooting at?"
+        return "There is no turkey. What are you gobbling?"
     else: 
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']
@@ -281,28 +278,28 @@ def bang(nick, chan, message, db, conn, notice):
             score = 1
             dbadd_entry(nick, chan, db, conn, score, 0)
         timer = "{:.3f}".format(shoot - deploy)
-        duck = "duck" if score == 1 else "ducks"
-        message("{} you shot a duck in {} seconds! You have killed {} {} in {}.".format(nick, timer, score, duck, chan))
+        duck = "turkey" if score == 1 else "turkeys"
+        message("{} you gobbled a turkey and fed your family in {} seconds! You have gobbled {} {} in {}.".format(nick, timer, score, duck, chan))
         set_ducktime(chan, conn)
 
-@hook.command("befriend", autohelp=False)
+# @hook.command("fre", "free", autohelp=False)
 def befriend(nick, chan, message, db, conn, notice):
-    """when there is a duck on the loose use this command to befriend it before someone else shoots it."""
+    """when there is a turkey on the loose, use this command to set it free into the wild before someone else shoots it."""
     global game_status, scripters
     if chan in opt_out:
         return
     network = conn.name
     out = ""
     score = ""
-    miss = ["The duck didn't want to be friends, maybe next time.", "Well this is awkward, the duck needs to think about it.", "The duck said no, maybe bribe it with some pizza? Ducks love pizza don't they?", "Who knew ducks could be so picky?"]
+    miss = ["The turkey slipped away from you!", "The turkey just ignored your advances, maybe you should provide an offering of some kind.", "Maybe you look scary or made too much noise. Either way the turkey rejected you."]
     if not game_status[network][chan]['game_on']:
         return "There is no hunt right now. Use .starthunt to start a game."
     elif game_status[network][chan]['duck_status'] != 1:
         if game_status[network][chan]['no_duck_kick'] == 1:
-            out = "KICK {} {} You tried befriending a non-existent duck, that's really creepy.".format(chan, nick)
+            out = "KICK {} {} You tried to set free a non-existent turkey, you're weird.".format(chan, nick)
             conn.send(out)
             return
-        return "You tried befriending a non-existent duck, that's really creepy."
+        return "You tried to set free a non-existent turkey, you're weird."
     else:
         game_status[network][chan]['shoot_time'] = time()
         deploy = game_status[network][chan]['duck_time']
@@ -317,7 +314,7 @@ def befriend(nick, chan, message, db, conn, notice):
             scripters[nick.lower()] = shoot + 7
             return out
         if chance == .05:
-            out += "You tried friending that duck in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(str(shoot - deploy))
+            out += "You tried to set free that turkey in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(str(shoot - deploy))
             scripters[nick.lower()] = shoot + 7200
             if not random.random() <= chance:
                 return random.choice(miss) + " " + out
@@ -336,67 +333,10 @@ def befriend(nick, chan, message, db, conn, notice):
         else:
             score = 1
             dbadd_entry(nick, chan, db, conn, 0, score)
-        duck = "duck" if score == 1 else "ducks"
+        duck = "turkey" if score == 1 else "turkeys"
         timer = "{:.3f}".format(shoot - deploy)
-        message("{} you befriended a duck in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score, duck, chan))
+        message("{}, you set free a turkey in {} seconds! You have liberated {} {} in {}.".format(nick, timer, score, duck, chan))
         set_ducktime(chan,conn)
-
-# @hook.command("save")
-# def save(nick, chan, message, db, conn, notice):
-#     """when a duck has been killed use this command to save the duck."""
-#     global game_status, scripters
-#     if chan in opt_out:
-#         return
-#     network = conn.name
-#     out = ""
-#     score = ""
-#     miss = ["You tried your best to save the duck but it's too late.", "Duck's vital organs were damaged and could not be saved."]
-#     if not game_status[network][chan]['game_on']:
-#         return "There is no hunt right now. Use .starthunt to start a game."
-#     elif game_status[network][chan]['duck_status'] == 1:
-        
-#         # if game_status[network][chan]['no_duck_kick'] == 1:
-#         #     out = "KICK {} {} You tried befriending a non-existent duck, that's really creepy.".format(chan, nick)
-#         #     conn.send(out)
-#         #     return
-#         # return "You tried befriending a non-existent duck, that's really creepy."
-#     else:
-#         game_status[network][chan]['shoot_time'] = time()
-#         deploy = game_status[network][chan]['duck_time']
-#         shoot = game_status[network][chan]['shoot_time']
-#         # if nick.lower() in scripters:
-#         #     if scripters[nick.lower()] > shoot:
-#         #         notice("You are in a cool down period, you can try again in {} seconds.".format(str(scripters[nick.lower()] - shoot)))
-#         #         return
-#         chance = hit_or_miss(deploy, shoot)
-#         if not random.random() <= chance and chance > .05:
-#             out = random.choice(miss) + " You can try again in 7 seconds."
-#             scripters[nick.lower()] = shoot + 7
-#             return out
-#         if chance == .05:
-#             out += "You tried friending that duck in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(str(shoot - deploy))
-#             scripters[nick.lower()] = shoot + 7200
-#             if not random.random() <= chance:
-#                 return random.choice(miss) + " " + out
-#             else:
-#                 message(out)
-
-#         game_status[network][chan]['duck_status'] = 2
-#         score = db.execute(select([table.c.befriend]) \
-#             .where(table.c.network == conn.name) \
-#             .where(table.c.chan == chan.lower()) \
-#             .where(table.c.name == nick.lower())).fetchone()
-#         if score:
-#             score = score[0]
-#             score += 1
-#             dbupdate(nick, chan, db, conn, 0, score)
-#         else:
-#             score = 1
-#             dbadd_entry(nick, chan, db, conn, 0, score)
-#         duck = "duck" if score == 1 else "ducks"
-#         timer = "{:.3f}".format(shoot - deploy)
-#         message("{} you befriended a duck in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score, duck, chan))
-#         set_ducktime(chan,conn)
 
 def smart_truncate(content, length=320, suffix='...'):
     if len(content) <= length:
@@ -405,16 +345,16 @@ def smart_truncate(content, length=320, suffix='...'):
         return content[:length].rsplit(' • ', 1)[0]+suffix
 
 
-@hook.command("friends", autohelp=False)
+@hook.command("turkeyfreers", "freers", autohelp=False)
 def friends(text, chan, conn, db):
-    """Prints a list of the top duck friends in the channel, if 'global' is specified all channels in the database are included."""
+    """Prints a list of the top turkey freers in the channel."""
     if chan in opt_out:
         return
     friends = defaultdict(int)
     chancount = defaultdict(int)
     out = ""
     if text.lower() == 'global' or text.lower() == 'average':
-        out = "Duck friend scores across the network: "
+        out = "turkey friend scores across the network: "
         scores = db.execute(select([table.c.name, table.c.befriend]) \
             .where(table.c.network == conn.name) \
             .order_by(desc(table.c.befriend)))
@@ -428,9 +368,9 @@ def friends(text, chan, conn, db):
                 for k, v in friends.items():
                     friends[k] = int(v / chancount[k])
         else:
-            return "it appears no on has friended any ducks yet."
+            return "it appears no one has freed any turkeys yet."
     else:
-        out = "Duck friend scores in {}: ".format(chan)
+        out = "turkey freed scores in {}: ".format(chan)
         scores = db.execute(select([table.c.name, table.c.befriend]) \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
@@ -441,23 +381,24 @@ def friends(text, chan, conn, db):
                     continue
                 friends[row[0]] += row[1]
         else:
-            return "it appears no on has friended any ducks yet."
+            return "it appears no one has freed any turkeys yet."
 
     topfriends = sorted(friends.items(), key=operator.itemgetter(1), reverse = True)
     out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v))  for k, v in topfriends])
     out = smart_truncate(out)
+    out += " "
     return out
 
-@hook.command("killers", autohelp=False)
+@hook.command("turkeygobblers", "gobblers", autohelp=False)
 def killers(text, chan, conn, db):
-    """Prints a list of the top duck killers in the channel, if 'global' is specified all channels in the database are included."""
+    """Prints a list of the top turkey gobblers in the channel."""
     if chan in opt_out:
         return
     killers = defaultdict(int)
     chancount = defaultdict(int)
     out = ""
     if text.lower() == 'global' or text.lower() == 'average':
-        out = "Duck killer scores across the network: "
+        out = "turkey gobbler scores across the network: "
         scores = db.execute(select([table.c.name, table.c.shot]) \
             .where(table.c.network == conn.name) \
             .order_by(desc(table.c.shot)))
@@ -471,9 +412,9 @@ def killers(text, chan, conn, db):
                 for k, v in killers.items():
                     killers[k] = int(v / chancount[k])
         else:
-            return "it appears no on has killed any ducks yet."
+            return "it appears no one has gobbled any turkeys yet."
     else:
-        out = "Duck killer scores in {}: ".format(chan)
+        out = "turkey gobbler scores in {}: ".format(chan)
         scores = db.execute(select([table.c.name, table.c.shot]) \
             .where(table.c.network == conn.name) \
             .where(table.c.chan == chan.lower()) \
@@ -484,14 +425,14 @@ def killers(text, chan, conn, db):
                     continue
                 killers[row[0]] += row[1]
         else:
-            return "it appears no on has killed any ducks yet."
+            return "it appears no on has gobbled any turkeys yet."
 
     topkillers = sorted(killers.items(), key=operator.itemgetter(1), reverse = True)
     out += ' • '.join(["{}: {}".format('\x02' + k[:1] + u'\u200b' + k[1:] + '\x02', str(v))  for k, v in topkillers])
     out = smart_truncate(out)
     return out
 
-@hook.command("duckforgive", permissions=["op", "ignore"])
+@hook.command("turkeyforgive", permissions=["op", "ignore"])
 def duckforgive(text):
     """Allows people to be removed from the mandatory cooldown period."""
     global scripters
@@ -503,12 +444,12 @@ def duckforgive(text):
 
 #@hook.command("hunt_opt_out", permissions=["op", "ignore"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
-    """Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel."""
+    """Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck and turkey hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel."""
     if not text:
         if chan in opt_out:
-            return "Duck hunt is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(chan)
+            return "turkey hunt is disabled in {}. To re-enable it run .hunt_opt_out remove #channel".format(chan)
         else:
-            return "Duck hunt is enabled in {}. To disable it run .hunt_opt_out add #channel".format(chan)
+            return "turkey hunt is enabled in {}. To disable it run .hunt_opt_out add #channel".format(chan)
     if text == "list":
         return ", ".join(opt_out)
     if len(text.split(' ')) < 2:
@@ -519,26 +460,28 @@ def hunt_opt_out(text, chan, db, conn):
         return "Please specify a valid channel."
     if command.lower() == "add":
         if channel in opt_out:
-            return "Duck hunt has already been disabled in {}.".format(channel)
+            return "turkey hunt has already been disabled in {}.".format(channel)
         query = optout.insert().values(
             network = conn.name,
             chan = channel.lower())
         db.execute(query)
         db.commit()
         load_optout(db)
-        return "The duckhunt has been successfully disabled in {}.".format(channel)
+        return "The turkey hunt has been successfully disabled in {}.".format(channel)
     if command.lower() == "remove":
         if not channel in opt_out:
-            return "Duck hunt is already enabled in {}.".format(channel)
+            return "turkey hunt is already enabled in {}.".format(channel)
         delete = optout.delete(optout.c.chan == channel.lower())
         db.execute(delete)
         db.commit()
         load_optout(db)
 
-@hook.command("duckmerge", permissions=["botcontrol"])
+@hook.command("turkeymerge", permissions=["botcontrol"])
 def duck_merge(text, conn, db, message):
-    """Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone."""
+    """Moves the turkey scores from one nick to another nick. Accepts two nicks as input the first will have their turkey scores removed the second will have the first score added. Warning this cannot be undone."""
     oldnick, newnick = text.lower().split()
+    if oldnick == newnick:
+        return "please specify two different nicks."
     if not oldnick or not newnick:
         return "Please specify two nicks for this command."
     oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
@@ -584,105 +527,13 @@ def duck_merge(text, conn, db, message):
             .where(table.c.name == oldnick)
         db.execute(query)
         db.commit()
-        message("Migrated {} duck kills and {} duck friends from {} to {}".format(duckmerge["TKILLS"], duckmerge["TFRIENDS"], oldnick, newnick))
+        message("Migrated {} turkey gobbles and {} turkey freed from {} to {}".format(duckmerge["TKILLS"], duckmerge["TFRIENDS"], oldnick, newnick))
     else:
-        return "There are no duck scores to migrate from {}".format(oldnick)
+        return "There are no turkey scores to migrate from {}".format(oldnick)
 
-@hook.command("killsmerge", permissions=["botcontrol"])
-def kills_merge(text, conn, db, message):
-    """Moves the duck kill scores from one nick to another nick. Accepts two nicks as input the first will have their duck kill scores removed the second will have the first kill score added. Warning this cannot be undone."""
-    oldnick, newnick = text.lower().split()
-    if not oldnick or not newnick:
-        return "Please specify two nicks for this command."
-    oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == oldnick)).fetchall()
-    newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == newnick)).fetchall()
-    duckmerge = defaultdict(lambda: defaultdict(int))
-    duckmerge["TKILLS"] = 0
-    channelkey = {"update":[], "insert":[]}
-    if oldnickscore:
-        if newnickscore:
-            for row in newnickscore:
-                duckmerge[row["chan"]]["shot"] = row["shot"]
-            for row in oldnickscore:
-                if row["chan"] in duckmerge:
-                    duckmerge[row["chan"]]["shot"] = duckmerge[row["chan"]]["shot"] + row["shot"]
-                    channelkey["update"].append(row["chan"])
-                    duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
-                else:
-                    duckmerge[row["chan"]]["shot"] = row["shot"]
-                    channelkey["insert"].append(row["chan"])
-                    duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
-        else:
-            for row in oldnickscore:
-                duckmerge[row["chan"]]["shot"] = row["shot"]
-                channelkey["insert"].append(row["chan"])
-       # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
-        for channel in channelkey["insert"]:
-            dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["shot"])
-        for channel in channelkey["update"]:
-            dbupdate(newnick, channel, db, conn, duckmerge[channel]["shot"])
-        query = table.delete() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.name == oldnick)
-        db.execute(query)
-        db.commit()
-        message("Migrated {} duck kills from {} to {}".format(duckmerge["TKILLS"], oldnick, newnick))
-    else:
-        return "There are no duck scores to migrate from {}".format(oldnick)
-
-@hook.command("friendsmerge", permissions=["botcontrol"])
-def friends_merge(text, conn, db, message):
-    """Moves the befriend duck scores from one nick to another nick. Accepts two nicks as input the first will have their befriend duck scores removed the second will have the first score added. Warning this cannot be undone."""
-    oldnick, newnick = text.lower().split()
-    if not oldnick or not newnick:
-        return "Please specify two nicks for this command."
-    oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == oldnick)).fetchall()
-    newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == newnick)).fetchall()
-    duckmerge = defaultdict(lambda: defaultdict(int))
-    duckmerge["TFRIENDS"] = 0
-    channelkey = {"update":[], "insert":[]}
-    if oldnickscore:
-        if newnickscore:
-            for row in newnickscore:
-                duckmerge[row["chan"]]["befriend"] = row["befriend"]
-            for row in oldnickscore:
-                if row["chan"] in duckmerge:
-                    duckmerge[row["chan"]]["befriend"] = duckmerge[row["chan"]]["befriend"] + row["befriend"]
-                    channelkey["update"].append(row["chan"])
-                    duckmerge["TFRIENDS"] = duckmerge["TFRIENDS"] + row["befriend"]
-                else:
-                    duckmerge[row["chan"]]["befriend"] = row["befriend"]
-                    channelkey["insert"].append(row["chan"])
-                    duckmerge["TFRIENDS"] = duckmerge["TFRIENDS"] + row["befriend"]
-        else:
-            for row in oldnickscore:
-                duckmerge[row["chan"]]["befriend"] = row["befriend"]
-                channelkey["insert"].append(row["chan"])
-       # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
-        for channel in channelkey["insert"]:
-            dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["befriend"])
-        for channel in channelkey["update"]:
-            dbupdate(newnick, channel, db, conn, duckmerge[channel]["befriend"])
-        query = table.delete() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.name == oldnick)
-        db.execute(query)
-        db.commit()
-        message("Migrated {} duck friends from {} to {}".format(duckmerge["TFRIENDS"], oldnick, newnick))
-    else:
-        return "There are no duck scores to migrate from {}".format(oldnick)         
-
-@hook.command("ducks", autohelp=False)
+@hook.command("turkeys", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
-    """Prints a users duck stats. If no nick is input it will check the calling username."""
+    """Prints a users turkey stats. If no nick is input it will check the calling username."""
     name = nick.lower()
     if text:
         name = text.split()[0].lower()
@@ -699,17 +550,17 @@ def ducks_user(text, nick, chan, conn, db, message):
             ducks["friend"] += row["befriend"]
             ducks["chans"] += 1
         if ducks["chans"] == 1:
-            message("{} has killed {} and befriended {} ducks in {}.".format(name, ducks["chankilled"], ducks["chanfriends"], chan))
+            message("{} has gobbled {} and freed {} turkeys in {}.".format(name, ducks["chankilled"], ducks["chanfriends"], chan))
             return
         kill_average = int(ducks["killed"] / ducks["chans"])
         friend_average = int(ducks["friend"] / ducks["chans"])
-        message("\x02{}'s\x02 duck stats: \x02{}\x02 killed and \x02{}\x02 befriended in {}. Across {} channels: \x02{}\x02 killed and \x02{}\x02 befriended. Averaging \x02{}\x02 kills and \x02{}\x02 friends per channel.".format(name, ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"], kill_average, friend_average))
+        message("\x02{}'s\x02 turkey stats: \x02{}\x02 gobbled and \x02{}\x02 freed in {}. Across {} channels: \x02{}\x02 gobbled and \x02{}\x02 freed. Averaging \x02{}\x02 gobbles and \x02{}\x02 frees per channel.".format(name, ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"], kill_average, friend_average))
     else:
-        return "It appears {} has not participated in the duck hunt.".format(name)
+        return "It appears {} has not participated in the turkey hunt.".format(name)
 
-@hook.command("duckstats", autohelp=False)
+@hook.command("turkeystats", autohelp=False)
 def duck_stats(chan, conn, db, message):
-    """Prints duck statistics for the entire channel and totals for the network."""
+    """Prints turkey statistics for the entire channel and totals for the network."""
     ducks = defaultdict(int)
     scores = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
         .where(table.c.network == conn.name)).fetchall()
@@ -728,6 +579,6 @@ def duck_stats(chan, conn, db, message):
         ducks["chans"] = int((len(ducks["friendchan"]) + len(ducks["killchan"])) / 2)
         killerchan, killscore = sorted(ducks["killchan"].items(), key=operator.itemgetter(1), reverse = True)[0]
         friendchan, friendscore = sorted(ducks["friendchan"].items(), key=operator.itemgetter(1), reverse =True)[0]
-        message("\x02Duck Stats:\x02 {} killed and {} befriended in \x02{}\x02. Across {} channels \x02{}\x02 ducks have been killed and \x02{}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} kills and \x02{}\x02 with {} friends".format(ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"], killerchan, killscore, friendchan, friendscore))
+        message("\x02turkey Stats:\x02 {} gobbled and {} freed in \x02{}\x02. Across {} channels \x02{}\x02 turkeys have been gobbled and \x02{}\x02 freed. \x02Top Channels:\x02 \x02{}\x02 with {} gobbles and \x02{}\x02 with {} frees".format(ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"], killerchan, killscore, friendchan, friendscore))
     else:
-        return "It looks like there has been no duck activity on this channel or network."
+        return "It looks like there has been no turkey activity on this channel or network."

@@ -115,26 +115,27 @@ def recipe(text):
 
 
 # inspired by http://whatthefuckshouldimakefordinner.com/ <3
-@hook.command("dinner", "wtfsimfd", autohelp=False)
+@hook.command("dinner", autohelp=False)
 def dinner():
-    """- TELLS YOU WHAT THE F**K YOU SHOULD MAKE FOR DINNER"""
+    """- TELLS YOU WHAT YOU SHOULD MAKE FOR DINNER"""
     try:
         request = requests.get(RANDOM_URL)
         request.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        return "I CANT GET A DAMN RECIPE: {}".format(e).upper()
+        return "I CANT GET A RECIPE: {}".format(e).upper()
 
     url = request.url
 
     try:
         data = get_data(url)
     except ParseError as e:
-        return "I CANT READ THE F**KING RECIPE: {}".format(e).upper()
+        return "I CANT READ THE RECIPE: {}".format(e).upper()
 
     name = data.name.strip().upper()
     text = random.choice(PHRASES).format(name)
 
     if CENSOR:
-        text = text.replace("FUCK", "F**K")
+        text = text.replace("FUCKING ", "")
+        text = text.replace("FUCK UP ", "")
 
     return "{} - {}".format(text, web.try_shorten(url))
