@@ -1,0 +1,237 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{3b39d497-5945-49fe-b568-e6e5be98de84}</ProjectGuid>
+    <ProjectHome />
+    <StartupFile />
+    <SearchPath />
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>{9a7a9026-48c1-4688-9d5d-e5699d47d074}</InterpreterId>
+    <InterpreterVersion>3.5</InterpreterVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
+  <PropertyGroup>
+    <VisualStudioVersion Condition=" '$(VisualStudioVersion)' == '' ">10.0</VisualStudioVersion>
+    <PtvsTargetsFile>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets</PtvsTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="data\8ball_responses.txt" />
+    <Content Include="data\book_puns.txt" />
+    <Content Include="data\confucious.txt" />
+    <Content Include="data\do_it.txt" />
+    <Content Include="data\flirts.txt" />
+    <Content Include="data\fortunes.txt" />
+    <Content Include="data\insults.txt" />
+    <Content Include="data\kills.txt" />
+    <Content Include="data\larts.txt" />
+    <Content Include="data\north_korea.txt" />
+    <Content Include="data\one_liners.txt" />
+    <Content Include="data\password_words.txt" />
+    <Content Include="data\puns.txt" />
+    <Content Include="data\quran_sahih.txt" />
+    <Content Include="data\wisdom.txt" />
+    <Content Include="data\yo_momma.txt" />
+    <Content Include="docs\user\img\cse_1.png" />
+    <Content Include="docs\user\img\cse_2.png" />
+    <Content Include="docs\user\img\cse_3.png" />
+    <Content Include="docs\user\img\gdev_1.png" />
+    <Content Include="docs\user\img\gdev_2.png" />
+    <Content Include="docs\user\img\gdev_3.png" />
+    <Content Include="docs\user\img\gdev_4.png" />
+    <Content Include="docs\user\img\gdev_5.png" />
+    <Content Include="docs\user\img\gdev_6.png" />
+    <Content Include="docs\user\img\gdev_7.png" />
+    <Content Include="docs\user\img\gdev_8.png" />
+    <Content Include="docs\user\img\oc_1.png" />
+    <Content Include="docs\user\img\oc_2.png" />
+    <Content Include="docs\user\img\oc_3.png" />
+    <Content Include="docs\user\img\wn_1.png" />
+    <Content Include="requirements.txt" />
+    <Content Include="travis\requirements.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="cloudbot\bot.py" />
+    <Compile Include="cloudbot\client.py" />
+    <Compile Include="cloudbot\clients\irc.py" />
+    <Compile Include="cloudbot\clients\__init__.py" />
+    <Compile Include="cloudbot\config.py" />
+    <Compile Include="cloudbot\event.py" />
+    <Compile Include="cloudbot\hook.py" />
+    <Compile Include="cloudbot\permissions.py" />
+    <Compile Include="cloudbot\plugin.py" />
+    <Compile Include="cloudbot\reloader.py" />
+    <Compile Include="cloudbot\util\colors.py" />
+    <Compile Include="cloudbot\util\database.py" />
+    <Compile Include="cloudbot\util\filesize.py" />
+    <Compile Include="cloudbot\util\formatting.py" />
+    <Compile Include="cloudbot\util\http.py" />
+    <Compile Include="cloudbot\util\test\test_colors.py" />
+    <Compile Include="cloudbot\util\test\test_database.py" />
+    <Compile Include="cloudbot\util\test\test_filesize.py" />
+    <Compile Include="cloudbot\util\test\test_formatting.py" />
+    <Compile Include="cloudbot\util\test\test_timeformat.py" />
+    <Compile Include="cloudbot\util\test\test_tokenbucket.py" />
+    <Compile Include="cloudbot\util\textgen.py" />
+    <Compile Include="cloudbot\util\timeformat.py" />
+    <Compile Include="cloudbot\util\timeparse.py" />
+    <Compile Include="cloudbot\util\tokenbucket.py" />
+    <Compile Include="cloudbot\util\web.py" />
+    <Compile Include="cloudbot\util\__init__.py" />
+    <Compile Include="cloudbot\__init__.py" />
+    <Compile Include="cloudbot\__main__.py" />
+    <Compile Include="plugins\admin_bot.py" />
+    <Compile Include="plugins\admin_channel.py" />
+    <Compile Include="plugins\amazon.py" />
+    <Compile Include="plugins\attacks.py" />
+    <Compile Include="plugins\badwords.py" />
+    <Compile Include="plugins\books.py" />
+    <Compile Include="plugins\brainfuck.py" />
+    <Compile Include="plugins\cats.py" />
+    <Compile Include="plugins\chatbot.py" />
+    <Compile Include="plugins\cheers.py" />
+    <Compile Include="plugins\core_ctcp.py" />
+    <Compile Include="plugins\core_misc.py" />
+    <Compile Include="plugins\core_sieve.py" />
+    <Compile Include="plugins\core_tracker.py" />
+    <Compile Include="plugins\correction.py" />
+    <Compile Include="plugins\cryptocurrency.py" />
+    <Compile Include="plugins\cypher.py" />
+    <Compile Include="plugins\dig.py" />
+    <Compile Include="plugins\domainr.py" />
+    <Compile Include="plugins\dramatica.py" />
+    <Compile Include="plugins\duckhunt.py" />
+    <Compile Include="plugins\eightball.py" />
+    <Compile Include="plugins\etymology.py" />
+    <Compile Include="plugins\fact.py" />
+    <Compile Include="plugins\factoids.py" />
+    <Compile Include="plugins\feeds.py" />
+    <Compile Include="plugins\fight.py" />
+    <Compile Include="plugins\fishbans.py" />
+    <Compile Include="plugins\flip.py" />
+    <Compile Include="plugins\foods.py" />
+    <Compile Include="plugins\fortune.py" />
+    <Compile Include="plugins\gaming.py" />
+    <Compile Include="plugins\geoip.py" />
+    <Compile Include="plugins\giphy.py" />
+    <Compile Include="plugins\github.py" />
+    <Compile Include="plugins\google.py" />
+    <Compile Include="plugins\googleurlparse.py" />
+    <Compile Include="plugins\google_cse.py" />
+    <Compile Include="plugins\google_translate.py" />
+    <Compile Include="plugins\grab.py" />
+    <Compile Include="plugins\help.py" />
+    <Compile Include="plugins\history.py" />
+    <Compile Include="plugins\horoscope.py" />
+    <Compile Include="plugins\ignore.py" />
+    <Compile Include="plugins\imdb.py" />
+    <Compile Include="plugins\imgur.py" />
+    <Compile Include="plugins\issafe.py" />
+    <Compile Include="plugins\jokes.py" />
+    <Compile Include="plugins\karma.py" />
+    <Compile Include="plugins\lastfm.py" />
+    <Compile Include="plugins\lenny.py" />
+    <Compile Include="plugins\link_announcer.py" />
+    <Compile Include="plugins\linux.py" />
+    <Compile Include="plugins\lmgtfy.py" />
+    <Compile Include="plugins\locate.py" />
+    <Compile Include="plugins\log.py" />
+    <Compile Include="plugins\lurve.py" />
+    <Compile Include="plugins\lyricsnmusic.py" />
+    <Compile Include="plugins\metacritic.py" />
+    <Compile Include="plugins\metars.py" />
+    <Compile Include="plugins\minecraft_ping.py" />
+    <Compile Include="plugins\minecraft_status.py" />
+    <Compile Include="plugins\minecraft_user.py" />
+    <Compile Include="plugins\minecraft_wiki.py" />
+    <Compile Include="plugins\monsterhunt.py" />
+    <Compile Include="plugins\mylife.py" />
+    <Compile Include="plugins\name_generator.py" />
+    <Compile Include="plugins\nep.py" />
+    <Compile Include="plugins\newegg.py" />
+    <Compile Include="plugins\notes.py" />
+    <Compile Include="plugins\octopart.py" />
+    <Compile Include="plugins\pagecheck.py" />
+    <Compile Include="plugins\password.py" />
+    <Compile Include="plugins\piglatin.py" />
+    <Compile Include="plugins\ping.py" />
+    <Compile Include="plugins\plpaste.py" />
+    <Compile Include="plugins\poll.py" />
+    <Compile Include="plugins\profiling.py" />
+    <Compile Include="plugins\python.py" />
+    <Compile Include="plugins\quote.py" />
+    <Compile Include="plugins\quran.py" />
+    <Compile Include="plugins\recipe.py" />
+    <Compile Include="plugins\reddit.py" />
+    <Compile Include="plugins\reddit_info.py" />
+    <Compile Include="plugins\regex_chans.py" />
+    <Compile Include="plugins\remind.py" />
+    <Compile Include="plugins\rottentomatoes.py" />
+    <Compile Include="plugins\salah.py" />
+    <Compile Include="plugins\scene.py" />
+    <Compile Include="plugins\shorten.py" />
+    <Compile Include="plugins\snopes.py" />
+    <Compile Include="plugins\soundcloud.py" />
+    <Compile Include="plugins\spank.py" />
+    <Compile Include="plugins\speedtest.py" />
+    <Compile Include="plugins\spellcheck.py" />
+    <Compile Include="plugins\sportscores.py" />
+    <Compile Include="plugins\spotify.py" />
+    <Compile Include="plugins\steamdb.py" />
+    <Compile Include="plugins\steam_store.py" />
+    <Compile Include="plugins\steam_user.py" />
+    <Compile Include="plugins\stock.py" />
+    <Compile Include="plugins\suggest.py" />
+    <Compile Include="plugins\system.py" />
+    <Compile Include="plugins\takbir.py" />
+    <Compile Include="plugins\tell.py" />
+    <Compile Include="plugins\test\test_fishbans.py" />
+    <Compile Include="plugins\test\__init__.py" />
+    <Compile Include="plugins\thefuckingweather.py" />
+    <Compile Include="plugins\time_plugin.py" />
+    <Compile Include="plugins\turkeyhunt.py" />
+    <Compile Include="plugins\tvdb.py" />
+    <Compile Include="plugins\twitch.py" />
+    <Compile Include="plugins\twitter.py" />
+    <Compile Include="plugins\urban.py" />
+    <Compile Include="plugins\utility.py" />
+    <Compile Include="plugins\validate.py" />
+    <Compile Include="plugins\vimeo.py" />
+    <Compile Include="plugins\voat.py" />
+    <Compile Include="plugins\weather.py" />
+    <Compile Include="plugins\whois.py" />
+    <Compile Include="plugins\wikipedia.py" />
+    <Compile Include="plugins\wolframalpha.py" />
+    <Compile Include="plugins\wordnik.py" />
+    <Compile Include="plugins\wouldyourather.py" />
+    <Compile Include="plugins\wyr.py" />
+    <Compile Include="plugins\xkcd.py" />
+    <Compile Include="plugins\yandex_translate.py" />
+    <Compile Include="plugins\youtube.py" />
+    <Compile Include="plugins\__init__.py" />
+    <Compile Include="travis\test_json.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="cloudbot" />
+    <Folder Include="cloudbot\clients" />
+    <Folder Include="cloudbot\util" />
+    <Folder Include="cloudbot\util\test" />
+    <Folder Include="data" />
+    <Folder Include="docs\" />
+    <Folder Include="docs\user\" />
+    <Folder Include="docs\user\img" />
+    <Folder Include="plugins" />
+    <Folder Include="plugins\test" />
+    <Folder Include="travis" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="{9a7a9026-48c1-4688-9d5d-e5699d47d074}\3.5" />
+  </ItemGroup>
+  <Import Project="$(PtvsTargetsFile)" Condition="Exists($(PtvsTargetsFile))" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.Common.targets" Condition="!Exists($(PtvsTargetsFile))" />
+</Project>
