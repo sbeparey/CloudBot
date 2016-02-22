@@ -178,7 +178,6 @@
     <Compile Include="plugins\shorten.py" />
     <Compile Include="plugins\snopes.py" />
     <Compile Include="plugins\soundcloud.py" />
-    <Compile Include="plugins\spank.py" />
     <Compile Include="plugins\speedtest.py" />
     <Compile Include="plugins\spellcheck.py" />
     <Compile Include="plugins\sportscores.py" />
