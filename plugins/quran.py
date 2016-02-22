@@ -15,15 +15,15 @@ import time
 from cloudbot import hook
 from cloudbot.util import database
 
-quran_text = Table(
-    'quran_text',
-    database.metadata,
-    Column('id', Integer),
-    Column('sura', Integer),
-    Column('aya', Integer),
-    Column('text', String),
-    PrimaryKeyConstraint('id')
-    )
+# quran_text = Table(
+#     'quran_text',
+#     database.metadata,
+#     Column('id', Integer),
+#     Column('sura', Integer),
+#     Column('aya', Integer),
+#     Column('text', String),
+#     PrimaryKeyConstraint('id')
+#     )
 
 quran_url = re.compile('^((http|https):\/\/)?((legacy|www)\.)?quran\.com/([1-9]|[1-9][0-9]|10[0-9]|11[0-4])(/([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-7][0-9]|28[0-6])((\-)([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-7][0-9]|28[0-6]))?)?$', re.IGNORECASE)
 
@@ -91,21 +91,21 @@ def recite(text, message, db):
             message(result)
             time.sleep(15)
 
-@hook.periodic(15, initial_interval=15)
-def recite_sura(db):
-    sura = 1
-    aya = 1
-    max_aya = 7
-    query = db.execute("select sura, aya, text from {} where sura = :sura and aya = :aya".format(table), { 'sura': sura, 'aya': aya}).fetchone()
-    if query is None:
-        return "\x02{}.{}\x02 does not exist. If you think this is an error, please let us know".format(sura, aya)
-    row = "\x02{}.{}:\x02 {} ".format(query[0], query[1], query[2])
-    result = smart_truncate(row)
-    if aya < max_aya:
-        aya = aya + 1
-    else:
-        aya = 1
-    message(result)
+# @hook.periodic(15, initial_interval=15)
+# def recite_sura(db):
+#     sura = 1
+#     aya = 1
+#     max_aya = 7
+#     query = db.execute("select sura, aya, text from {} where sura = :sura and aya = :aya".format(table), { 'sura': sura, 'aya': aya}).fetchone()
+#     if query is None:
+#         return "\x02{}.{}\x02 does not exist. If you think this is an error, please let us know".format(sura, aya)
+#     row = "\x02{}.{}:\x02 {} ".format(query[0], query[1], query[2])
+#     result = smart_truncate(row)
+#     if aya < max_aya:
+#         aya = aya + 1
+#     else:
+#         aya = 1
+#     message(result)
 
 @hook.command('q', 'quran', autohelp=False)
 def quran(text, message, db):
