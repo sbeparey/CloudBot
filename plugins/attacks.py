@@ -33,13 +33,16 @@ def load_attacks(bot):
     """
     :type bot: cloudbot.bot.CloudBot
     """
-    global larts, flirts, kills, slaps, north_korea, insults, strax, compliments, presents
+    global larts, flirts, halal_flirts, kills, slaps, north_korea, insults, strax, compliments, presents
 
     with codecs.open(os.path.join(bot.data_dir, "larts.txt"), encoding="utf-8") as f:
         larts = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
     with codecs.open(os.path.join(bot.data_dir, "flirts.txt"), encoding="utf-8") as f:
         flirts = [line.strip() for line in f.readlines() if not line.startswith("//")]
+
+    with codecs.open(os.path.join(bot.data_dir, "halal_flirts.txt"), encoding="utf-8") as f:
+        halal_flirts = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
     with codecs.open(os.path.join(bot.data_dir, "insults.txt"), encoding="utf-8") as f:
         insults = [line.strip() for line in f.readlines() if not line.startswith("//")]
@@ -89,14 +92,14 @@ def flirt(text, conn, nick, chan, message):
     target = text.strip()
 
     if not is_valid(target):
-        return "I can't attack that."
+        return "I can't flirt with that."
 
     if is_self(conn, target):
         # user is trying to make the bot attack itself!
         target = nick
 
     if chan in opt_out:
-        message('{}, {}'.format(target, "you are masha'Allah perfect!"))
+        message('{}, {}'.format(target, random.choice(halal_flirts)))
     else:
         message('{}, {}'.format(target, random.choice(flirts)))
 
