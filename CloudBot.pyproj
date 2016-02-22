@@ -27,6 +27,7 @@
     <Content Include="data\do_it.txt" />
     <Content Include="data\flirts.txt" />
     <Content Include="data\fortunes.txt" />
+    <Content Include="data\halal_flirts.txt" />
     <Content Include="data\insults.txt" />
     <Content Include="data\kills.txt" />
     <Content Include="data\larts.txt" />
