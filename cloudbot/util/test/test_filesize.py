@@ -42,4 +42,3 @@ def test_size_si():
 
 def test_size_alias():
     assert size(1, system=fs.V) == "1 byte"
-

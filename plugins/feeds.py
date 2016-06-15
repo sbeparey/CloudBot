@@ -1,29 +1,23 @@
 import asyncio
-import feedparser
 import functools
 import re
 import time
+import praw
+import feedparser
 
+from bs4 import BeautifulSoup
 from datetime import datetime
-
 from collections import defaultdict
-
 from cloudbot import hook
 from cloudbot.event import EventType
 from cloudbot.util import database, web, formatting
-
-
 from sqlalchemy import Table, Column, String, Integer, PrimaryKeyConstraint, desc
 from sqlalchemy.sql import select, insert, delete
-
 from sqlalchemy.exc import IntegrityError
-
-from bs4 import BeautifulSoup
 
 t = 'https://www.reddit.com/r/'
 subs = defaultdict(list)
-cache = defaultdict(list)
-feed = defaultdict(list)
+last_entry = defaultdict(str)
 status = defaultdict(int)
 
 feed_subs = Table(
@@ -34,57 +28,63 @@ feed_subs = Table(
     PrimaryKeyConstraint('channel', 'subs')
 )
 
-#@asyncio.coroutine
+@asyncio.coroutine
 #@hook.on_start()
-def initial_load(db, message):
-    """ When the script starts, build the url and cache the initial feed """
+def initial_load(bot, db):
+    """ When the script starts, build the url and last_entry the initial feed """
+    print("got here")
     global subs, status
-    all_subs = get_all_subs(db)
-    if not all_subs:
-        return
-    for row in all_subs:
-        chan = row['channel']
-        dbsubs = row['subs'] 
-        status[chan] = 1
-        subs[chan] = dbsubs.split('+')
-        url = '{}{}/new/.rss?sort=new'.format(t, dbsubs)
-        get_feed(url, chan)
+    conn = bot.connections['snoonet']
+    if conn.ready:
+        all_subs = get_all_subs(db)
+        if not all_subs:
+            return
+        for row in all_subs:
+            chan = row['channel']
+            dbsubs = row['subs'] 
+            status[chan] = 1
+            subs[chan] = dbsubs.split('+')
+            url = '{}{}/new/.rss?sort=new&limit=1'.format(t, dbsubs)
+            get_initial_feed(conn, chan, url)
 
-#@hook.periodic(600, initial_interval=600)
-def refresh_feed(db):
-    for chan in subs:
-        url = '{}{}/new/.rss?sort=new'.format(t, '+'.join(subs[chan]))
-        update_feed(url, chan)
+#@asyncio.coroutine
+def get_initial_feed(conn, chan, url):
+    """ Grab the entries from the feed and last_entry them """
+    global last_entry
+    feed = feedparser.parse(url)
+    if feed and feed.entries:
+        last_entry[chan] = get_url_id(feed.entries[0].link)
+        conn.message(chan, format_feed(feed.entries[0]))
 
-def get_feed(url, chan):
-    """ Grab the entries from the feed and cache them """
-    global cache
-    f = feedparser.parse(url)
-    if f:
-        cache[chan] = f.entries
-        feed[chan] = f.entries[:3]
-
-def update_feed(url, chan):
-    """ Update the existing feed cache with latest entries """
-    global cache, feed
-    new_feed = feedparser.parse(url)
-    if new_feed:
-        for new_item in new_feed.entries:
-            for old_item in cache[chan]:
-                if get_url_id(new_item.link) != get_url_id(old_item.link):
-                    cache[chan].append(new_item)
-                    feed[chan].append(new_item)
-
-#@hook.periodic(60, initial_interval=60)
-def display_feed_item(bot):
-    global feed
+#@hook.periodic(30, initial_interval=30)
+def refresh_feed(bot, db):
     conn = bot.connections['snoonet']
     if conn.ready:
         for chan in subs:
-            if feed.get(chan) and status[chan] == 1:
-                item = feed[chan].pop()
-                display_text = format_feed(item)
-                conn.message(chan, display_text)
+            if status[chan] == 1:
+                url = '{}{}/new/.rss?sort=new&before=t3_{}'.format(t, '+'.join(subs[chan]), last_entry[chan])
+                update_feed(conn, chan, url)
+
+def update_feed(conn, chan, url):
+    """ Update the existing feed last_entry with latest entries """
+    global last_entry
+    feed = feedparser.parse(url)
+    if feed and feed.entries:
+        last_entry[chan] = get_url_id(feed.entries[0].link)
+        for item in reversed(feed.entries):
+            conn.message(chan, format_feed(item))
+            time.sleep(3)
+
+#@hook.periodic(60, initial_interval=60)
+#def display_feed_item(bot):
+#    global feed
+#    conn = bot.connections['snoonet']
+#    if conn.ready:
+#        for chan in subs:
+#            if feed.get(chan) and status[chan] == 1:
+#                item = feed[chan].pop()
+#                display_text = format_feed(item)
+#                conn.message(chan, display_text)
 
 def get_url_id(link):
     return link.split('comments/')[1].split('/')[0]

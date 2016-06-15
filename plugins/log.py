@@ -19,15 +19,15 @@ base_formats = {
     EventType.action: "[{server}:{channel}] * {nick} {content}",
     EventType.join: "[{server}:{channel}] -!- {nick} [{user}@{host}] has joined",
     EventType.part: "[{server}:{channel}] -!- {nick} [{user}@{host}] has left ({content})",
-    EventType.kick: "[{server}:{channel}] -!- {nick} has kicked {target} ({content})",
+    EventType.kick: "[{server}:{channel}] -!- {nick} has kicked {target} ({content})"
 }
 
 irc_formats = {
     "MODE": "[{server}:{channel}] -!- mode/{channel} [{param_tail}] by {nick}",
     "TOPIC": "[{server}:{channel}] -!- {nick} has changed the topic to: {content}",
     "QUIT": "[{server}] -!- {nick} has quit ({content})",
-    "INVITE": "[{server}] -!- {nick} has invited {target} to {chan}",
-    "NICK": "[{server}] {nick} is now known as {content}",
+    "INVITE": "[{server}] -!- {nick} has invited {target} to {channel}",
+    "NICK": "[{server}] {nick} is now known as {content}"
 }
 
 irc_default = "[{server}] {irc_raw}"
@@ -238,6 +238,7 @@ def console_log(bot, event):
     :type event: cloudbot.event.Event
     """
     text = format_event(event)
+
     if text is not None:
         bot.logger.info(text)
 

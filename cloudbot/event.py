@@ -15,7 +15,8 @@ class EventType(enum.Enum):
     join = 3
     part = 4
     kick = 5
-    other = 6
+    quit = 6
+    other = 7
 
 
 class Event:
@@ -351,15 +352,15 @@ class CommandEvent(Event):
         if self.triggered_command is None:
             raise ValueError("Triggered command not set on this event")
         if self.hook.doc is None:
-            message = "{}{} requires additional arguments.".format(self.conn.config["command_prefix"][0],
+            message = "{}{} requires additional arguments.".format(self.conn.config["command_prefix"],
                                                                    self.triggered_command)
         else:
             if self.hook.doc.split()[0].isalpha():
                 # this is using the old format of `name <args> - doc`
-                message = "{}{}".format(self.conn.config["command_prefix"][0], self.hook.doc)
+                message = "{}{}".format(self.conn.config["command_prefix"], self.hook.doc)
             else:
                 # this is using the new format of `<args> - doc`
-                message = "{}{} {}".format(self.conn.config["command_prefix"][0], self.triggered_command, self.hook.doc)
+                message = "{}{} {}".format(self.conn.config["command_prefix"], self.triggered_command, self.hook.doc)
 
         self.notice(message, target=target)
 

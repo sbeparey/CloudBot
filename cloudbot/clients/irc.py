@@ -15,17 +15,18 @@ irc_noprefix_re = re.compile(r"([^ ]*) (.*)")
 irc_netmask_re = re.compile(r"([^!@]*)!([^@]*)@(.*)")
 irc_param_re = re.compile(r"(?:^|(?<= ))(:.*|[^ ]+)")
 
-irc_bad_chars = ''.join([chr(x) for x in list(range(0, 1)) + list(range(4, 32)) + list(range(127, 160))])
+irc_bad_chars = ''.join([chr(x) for x in list(range(0, 32)) + list(range(127, 160))])
 irc_clean_re = re.compile('[{}]'.format(re.escape(irc_bad_chars)))
 
 def irc_clean(dirty):
-    return irc_clean_re.sub('',dirty)
+    return irc_clean_re.sub('', dirty)
 
 irc_command_to_event_type = {
     "PRIVMSG": EventType.message,
     "JOIN": EventType.join,
     "PART": EventType.part,
     "KICK": EventType.kick,
+    "QUIT": EventType.quit,
     "NOTICE": EventType.notice
 }
 
@@ -146,17 +147,20 @@ class IrcClient(Client):
         self._transport.close()
         self._connected = False
 
-    def message(self, target, *messages):
+    def message(self, target, *messages, sanatize=True):
         for text in messages:
-            text = "".join(text.splitlines())
+            if sanatize == True:
+                text = "".join(text.splitlines())
             self.cmd("PRIVMSG", target, text)
 
-    def action(self, target, text):
-        text = "".join(text.splitlines())
+    def action(self, target, text, sanatize=True):
+        if sanatize == True:
+            text = "".join(text.splitlines())
         self.ctcp(target, "ACTION", text)
 
-    def notice(self, target, text):
-        text = "".join(text.splitlines())
+    def notice(self, target, text, sanatize=True):
+        if sanatize == True:
+            text = "".join(text.splitlines())
         self.cmd("NOTICE", target, text)
 
     def set_nick(self, nick):

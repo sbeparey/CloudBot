@@ -14,6 +14,7 @@ import time
 
 from cloudbot import hook
 from cloudbot.util import database
+#from collections import defaultdict
 
 # quran_text = Table(
 #     'quran_text',
@@ -25,7 +26,8 @@ from cloudbot.util import database
 #     PrimaryKeyConstraint('id')
 #     )
 
-quran_url = re.compile('^((http|https):\/\/)?((legacy|www)\.)?quran\.com/([1-9]|[1-9][0-9]|10[0-9]|11[0-4])(/([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-7][0-9]|28[0-6])((\-)([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-7][0-9]|28[0-6]))?)?$', re.IGNORECASE)
+quran_url = re.compile('^(https?:\/\/)?((legacy|www)\.)?quran\.com/([1-9]|[1-9][0-9]|10[0-9]|11[0-4])(/([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-7][0-9]|28[0-6])((\-)([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-7][0-9]|28[0-6]))?)?$', re.IGNORECASE)
+#reciting = defaultdict(int)
 
 @hook.regex(quran_url)
 def quran_url(match, chan, message, db):
@@ -51,61 +53,67 @@ def quran_url(match, chan, message, db):
 #                 recite_aya = 1
 #             return result
 
-@hook.command('recite', 'iqra', 'iqraa', autohelp=False)
-def recite(text, message, db):
-    """Automatically recites a given surah"""
-    recite = True
-    table = 'quran_sahih'
-
-    params = text.strip().split()
-
-    l = len(params)
-    if l == 1:
-        p = params[0]
-        if p.lower() == 'stop':
-            recite = False
-        else:
-            try:
-                sura = int(params[0])
-                if sura < 1:
-                    return "You have to start somewhere, try .quran 1:1"
-                elif sura > 114:
-                    return "There are only 114 suwar/chapters in the Qur'an"
-            except ValueError:
-                return "You have to give me a sura/chapter number. Use format <sura>:<ayah> e.g., 55:13"
+#@hook.command('recite', 'iqra', 'iqraa', autohelp=False)
+#def recite(text, message, notice, db):
+#    """Automatically recites a given surah"""
+#    global reciting, sura, aya, max_aya
+#    if reciting:
+#        notice("A surah currently being recited, please wait for the surah to end before starting another one.")
+#        return
+#    table = 'quran_sahih'
+#    params = text.strip().split()
+#    l = len(params)
+#    if l == 1:
+#        p = params[0]
+#        if p.lower() == 'stop':
+#            reciting = False
+#        else:
+#            try:
+#                sura = int(params[0])
+#                if sura < 1:
+#                    return "You have to start somewhere, try .recite 1"
+#                elif sura > 114:
+#                    return "There are only 114 suwar/chapters in the Qur'an"
+#            except ValueError:
+#                return "You have to give me a sura/chapter number. Use format <sura> e.g., 96"
         
-            query = db.execute("select max(aya) from quran_sahih where sura = :sura".format(table), {'sura': sura}).fetchone()
-            max_aya = int(query[0])        
-            aya = 1
+#            query = db.execute("select max(aya) from quran_sahih where sura = :sura".format(table), {'sura': sura}).fetchone()
+#            max_aya = int(query[0])        
+#            aya = 1
 
-        while recite and aya <= max_aya:
-            query = db.execute("select sura, aya, text from {} where sura = :sura and aya = :aya".format(table), { 'sura': sura, 'aya': aya}).fetchone()
-            if query is None:
-                return "\x02{}.{}\x02 does not exist. If you think this is an error, please let us know".format(sura, aya)
-            row = "\x02{}.{}:\x02 {} ".format(query[0], query[1], query[2])
-            result = smart_truncate(row)
-            if aya < max_aya:
-                aya = aya + 1
-            else:
-                aya = 1
-            message(result)
-            time.sleep(15)
+        #while recite and aya <= max_aya:
+        #    query = db.execute("select sura, aya, text from {} where sura = :sura and aya = :aya".format(table), { 'sura': sura, 'aya': aya}).fetchone()
+        #    if query is None:
+        #        return "\x02{}.{}\x02 does not exist. If you think this is an error, please let us know".format(sura, aya)
+        #    row = "\x02{}.{}:\x02 {} ".format(query[0], query[1], query[2])
+        #    result = smart_truncate(row)
+        #    if aya < max_aya:
+        #        aya = aya + 1
+        #    else:
+        #        aya = 1
+        #    message(result)
+        #    time.sleep(15)
 
-# @hook.periodic(15, initial_interval=15)
-# def recite_sura(db):
-#     sura = 1
-#     aya = 1
-#     max_aya = 7
-#     query = db.execute("select sura, aya, text from {} where sura = :sura and aya = :aya".format(table), { 'sura': sura, 'aya': aya}).fetchone()
-#     if query is None:
-#         return "\x02{}.{}\x02 does not exist. If you think this is an error, please let us know".format(sura, aya)
-#     row = "\x02{}.{}:\x02 {} ".format(query[0], query[1], query[2])
-#     result = smart_truncate(row)
-#     if aya < max_aya:
-#         aya = aya + 1
-#     else:
-#         aya = 1
-#     message(result)
+#@hook.periodic(15, initial_interval=0)
+#def recite_sura(bot, db):
+#    global reciting, sura, aya, max_aya
+#    conn = bot.connections['snoonet']
+#    if conn.ready:
+#        for chan in reciting:
+#            table = 'quran_sahih'
+#            try:
+#                query = db.execute("select sura, aya, text from {} where sura = :sura and aya = :aya".format(table), { 'sura': sura, 'aya': aya}).fetchone()
+#            except NameError:
+#                return
+#            if query is None:
+#                return "\x02{}.{}\x02 does not exist. If you think this is an error, please let us know".format(sura, aya)
+#            row = "\x02{}.{}:\x02 {} ".format(query[0], query[1], query[2])
+#            result = smart_truncate(row)
+#            if aya < max_aya:
+#                aya = aya + 1
+#            else:
+#                reciting = False
+#            message(result)
 
 @hook.command('q', 'quran', autohelp=False)
 def quran(text, message, db):

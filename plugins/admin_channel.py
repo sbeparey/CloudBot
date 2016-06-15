@@ -29,19 +29,19 @@ def mode_cmd_no_target(mode, text, text_inp, chan, conn, notice):
         conn.send("MODE {} {}".format(channel, mode))
 
 
-@hook.command(permissions=["op_ban", "op"])
+@hook.command('ban', permissions=["op_ban", "op"])
 def ban(text, conn, chan, notice):
     """[channel] <user> - bans <user> in [channel], or in the caller's channel if no channel is specified"""
     mode_cmd("+b", "ban", text, chan, conn, notice)
 
 
-@hook.command(permissions=["op_ban", "op"])
+@hook.command('unban', permissions=["op_ban", "op"])
 def unban(text, conn, chan, notice):
     """[channel] <user> - unbans <user> in [channel], or in the caller's channel if no channel is specified"""
     mode_cmd("-b", "unban", text, chan, conn, notice)
 
 
-@hook.command(permissions=["op_quiet", "op"])
+@hook.command('quiet', permissions=["op_quiet", "op"])
 def quiet(text, conn, chan, notice):
     """[channel] <user> - quiets <user> in [channel], or in the caller's channel if no channel is specified"""
     if conn.name == "snoonet":
@@ -51,7 +51,7 @@ def quiet(text, conn, chan, notice):
     mode_cmd("+q", "quiet", text, chan, conn, notice)
 
 
-@hook.command(permissions=["op_quiet", "op"])
+@hook.command('unquiet', permissions=["op_quiet", "op"])
 def unquiet(text, conn, chan, notice):
     """[channel] <user> - unquiets <user> in [channel], or in the caller's channel if no channel is specified"""
     if conn.name == "snoonet":
@@ -160,3 +160,7 @@ def lock(text, conn, chan, notice):
 def unlock(text, conn, chan, notice):
     """[channel] - unlocks [channel], or in the caller's channel if no channel is specified"""
     mode_cmd_no_target("-i", "unlock", text, chan, conn, notice)
+
+@hook.irc_raw('311', autohelp=False)
+def user_whois(irc_paramlist):
+    print(irc_paramlist)

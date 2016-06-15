@@ -8,7 +8,7 @@ socket.setdefaulttimeout(10)
 
 # Auto-join on Invite (Configurable, defaults to True)
 @asyncio.coroutine
-@hook.irc_raw('INVITE')
+@hook.irc_raw('INVITE', permissions=['invite'])
 def invite(irc_paramlist, conn):
     """
     :type irc_paramlist: list[str]

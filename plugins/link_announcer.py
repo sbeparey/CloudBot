@@ -46,6 +46,7 @@ def print_url_title(match, chan):
             out = "Content Type: \x02{}\x02 Size: \x02{}\x02".format(content, size)
             return out
         html = BeautifulSoup(r.text)
-        title = html.title.text.strip()
-        out = "Title: \x02{}\x02".format(title)
-        return out
+        if html.title and html.title.text:
+            title = html.title.text.strip().replace('\n', '')
+            out = "Title: \x02{}\x02".format(title)
+            return out

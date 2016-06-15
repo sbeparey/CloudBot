@@ -8,8 +8,6 @@ import re
 from cloudbot import hook
 from cloudbot.util import textgen
 
-opt_out = ['#islam', '#islam2', '#islamadmins', '#quran', '#sy']
-
 nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}]*$", re.I)
 
 cakes = ['Chocolate', 'Ice Cream', 'Angel', 'Boston Cream', 'Birthday', 'Bundt', 'Carrot', 'Coffee', 'Devils', 'Fruit',
@@ -92,9 +90,6 @@ def load_foods(bot):
     with codecs.open(os.path.join(bot.data_dir, "keto.json"), encoding="utf-8") as f:
         keto_data = json.load(f)
     
-    with codecs.open(os.path.join(bot.data_dir, "beer.json"), encoding="utf-8") as f:
-        beer_data = json.load(f)
-
     with codecs.open(os.path.join(bot.data_dir, "cheese.json"), encoding="utf-8") as f:
         cheese_data = json.load(f)
 
@@ -109,9 +104,6 @@ def load_foods(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "icecream.json"), encoding="utf-8") as f:
         icecream_data = json.load(f)
-
-    with codecs.open(os.path.join(bot.data_dir, "doobie.json"), encoding="utf-8") as f:
-        doobie_data = json.load(f)
 
 		
 @asyncio.coroutine
@@ -294,23 +286,6 @@ def keto(text, action):
 
 @asyncio.coroutine
 @hook.command
-def beer(text, chan, action):
-    """<user> - give beer to <user>"""
-    user = text.strip()
-
-    if chan in opt_out:
-        return chan + " does not allow consumptions of alcohol. Have a cup of tea or coffee instead."
-
-    if not is_valid(user):
-        return "I can't give beer to that user."
-
-    generator = textgen.TextGenerator(beer_data["templates"], beer_data["parts"],
-                                      variables={"user": user})
-    # act out the message
-    action(generator.generate_string())
-
-@asyncio.coroutine
-@hook.command
 def cheese(text, action):
     """<user> - give cheese to <user>"""
     user = text.strip()
@@ -376,23 +351,6 @@ def brekkie(text, action):
         return "I can't give brekkie to that user."
 
     generator = textgen.TextGenerator(brekkie_data["templates"], brekkie_data["parts"], variables={"user": user})
-
-    # act out the message
-    action(generator.generate_string())
-
-@asyncio.coroutine
-@hook.command("doobie")
-def doobie(text, action, chan):
-    """<user> - pass the doobie to <user>"""
-    if chan in opt_out:
-        return "Drugs are bad, mmmmmmmmkay?"
-	
-    user = text.strip()
-
-    if not is_valid(user):
-        return "I can't pass the doobie to that user."
-
-    generator = textgen.TextGenerator(doobie_data["templates"], doobie_data["parts"], variables={"user": user})
 
     # act out the message
     action(generator.generate_string())

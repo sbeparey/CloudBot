@@ -10,8 +10,6 @@ from cloudbot.util import textgen
 
 nick_re = re.compile("^[A-Za-z0-9_|.\-\]\[\{\}]*$", re.I)
 
-opt_out = ['#islam', '#islam2', '#islamadmins', '#quran', '#sy']
-
 def is_valid(target):
     """ Checks if a string is a valid IRC nick. """
     if nick_re.match(target):
@@ -37,9 +35,6 @@ def load_attacks(bot):
 
     with codecs.open(os.path.join(bot.data_dir, "larts.txt"), encoding="utf-8") as f:
         larts = [line.strip() for line in f.readlines() if not line.startswith("//")]
-
-    with codecs.open(os.path.join(bot.data_dir, "flirts.txt"), encoding="utf-8") as f:
-        flirts = [line.strip() for line in f.readlines() if not line.startswith("//")]
 
     with codecs.open(os.path.join(bot.data_dir, "halal_flirts.txt"), encoding="utf-8") as f:
         halal_flirts = [line.strip() for line in f.readlines() if not line.startswith("//")]
@@ -98,10 +93,7 @@ def flirt(text, conn, nick, chan, message):
         # user is trying to make the bot attack itself!
         target = nick
 
-    if chan in opt_out:
-        message('{}, {}'.format(target, random.choice(halal_flirts)))
-    else:
-        message('{}, {}'.format(target, random.choice(flirts)))
+    message('{}, {}'.format(target, random.choice(halal_flirts)))
 
 
 @asyncio.coroutine

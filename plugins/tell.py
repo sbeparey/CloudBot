@@ -41,6 +41,13 @@ def get_unread(db, server, target):
         .order_by(table.c.time_sent)
     return db.execute(query).fetchall()
 
+def get_unread_by_sender(db, server, sender, target):
+    query = select([table.c.message]) \
+        .where(table.c.connection == server.lower()) \
+        .where(table.c.sender == sender.lower()) \
+        .where(table.c.target == target.lower()) \
+        .where(table.c.is_read == 0)
+    return db.execute(query).fetchall()
 
 def count_unread(db, server, target):
     query = select([table]) \
@@ -93,14 +100,14 @@ def tell_check(conn, nick):
         else:
             continue
 
-@hook.event(EventType.message, singlethread=True)
+@hook.event([EventType.join, EventType.message], singlethread=True)
 def tellinput(event, conn, db, nick, notice):
     """
     :type event: cloudbot.event.Event
     :type conn: cloudbot.client.Client
     :type db: sqlalchemy.orm.Session
     """
-    if 'showtells' in event.content.lower():
+    if event.content and 'showtells' in event.content.lower():
         return
 
     if tell_check(conn.name, nick): 
@@ -147,8 +154,7 @@ def showtells(nick, notice, db, conn):
 def tell_cmd(text, nick, db, notice, conn):
     """tell <nick> <message> -- Relay <message> to <nick> when <nick> is around."""
     query = text.split(' ', 1)
-    if query[0].lower() == "paradox":
-        return "Paradox doesn't want to hear from me. Just send him a  message."
+
     if len(query) != 2:
         prefix = conn.config("command_prefix")
         notice(prefix[0] + tell_cmd.__doc__)
@@ -164,8 +170,16 @@ def tell_cmd(text, nick, db, notice, conn):
 
     if target.lower() == conn.nick.lower():
         # we can't send messages to ourselves
-        notice("Invalid nick '{}'.".format(target))
+        notice("Your love for me is duely noted!")
         return
+
+    existing_tells = get_unread_by_sender(db, conn.name, sender, target)
+
+    if existing_tells:
+        for item in existing_tells[0]:
+            if item == message:
+                notice("You sent this message already.")
+                return
 
     # if not re.match("^[a-z0-9_|.\-\]\[]*$", target.lower()):
     #     notice("Invalid nick '{}'.".format(target))

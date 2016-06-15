@@ -13,7 +13,7 @@ takbirs = [
 
 opt_in = ['#islam', '#islam2', '#islamadmins', '#sy']
 
-takbir_re = re.compile(r"takbir", re.IGNORECASE)
+takbir_re = re.compile(r".?takbir", re.IGNORECASE)
 
 @hook.regex(takbir_re)
 def takbir(match, conn, nick, chan, message):

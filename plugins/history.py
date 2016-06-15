@@ -16,10 +16,40 @@ def db_init(db, conn_name):
     """
     global db_ready
     if db_ready.count(conn_name) < 1:
-        db.execute("create table if not exists seen_user(name, time, quote, chan, host, primary key(name, chan))")
+        db.execute("create table if not exists history(time, host, chan, type, nick, message, primary key(time))")
+        db.execute("create table if not exists history2(time, host, chan, type, nick, message, primary key(time))")
         db.commit()
         db_ready.append(conn_name)
 
+def track_login(event, db, conn):
+    """ Tracks messages for the .seen command
+    :type event: cloudbot.event.Event
+    :type db: sqlalchemy.orm.Session
+    :type conn: cloudbot.client.Client
+    """
+
+    db_init(db, conn)
+
+    if event.type is EventType.join:
+        type = 'join'
+    elif event.type is EventType.part:
+        type = 'part'
+    elif event.type is EventType.quit:
+        type = 'quit'
+    elif event.type is EventType.kick:
+        type = 'kick'
+
+    message = ''
+    if event.content:
+        message = event.content
+
+    if event.type is EventType.join or \
+       event.type is EventType.part or \
+       event.type is EventType.quit or \
+       event.type is EventType.kick:
+        db.execute("insert or replace into history2(time, host, chan, type, nick, message) values(:time,:host,:chan,:type,:nick,:message)",
+            {'time': time.time(), 'host': event.mask, 'chan': event.chan, 'type': type, 'nick': event.nick.lower(), 'message': message})
+        db.commit()
 
 def track_seen(event, db, conn):
     """ Tracks messages for the .seen command
@@ -27,13 +57,18 @@ def track_seen(event, db, conn):
     :type db: sqlalchemy.orm.Session
     :type conn: cloudbot.client.Client
     """
+
     db_init(db, conn)
+
+    if event.type is EventType.action:
+        type = 'action'
+    else:
+        type = 'message'
+
     # keep private messages private
     if event.chan[:1] == "#" and not re.findall('^s/.*/.*/$', event.content.lower()):
-        db.execute(
-            "insert or replace into seen_user(name, time, quote, chan, host) values(:name,:time,:quote,:chan,:host)",
-            {'name': event.nick.lower(), 'time': time.time(), 'quote': event.content, 'chan': event.chan,
-             'host': event.mask})
+        db.execute('insert or replace into history(time, host, chan, type, nick, message) values(:time,:host,:chan,:type,:nick,:message)', 
+            {'time': time.time(), 'host': event.mask, 'chan': event.chan, 'type': type, 'nick': event.nick.lower(), 'message': event.content})
         db.commit()
 
 
@@ -54,7 +89,7 @@ def track_history(event, message_time, conn):
     history.append(data)
 
 
-@hook.event([EventType.message, EventType.action], singlethread=True)
+@hook.event([EventType.join, EventType.message, EventType.action, EventType.part, EventType.quit], singlethread=True)
 def chat_tracker(event, db, conn):
     """
     :type db: sqlalchemy.orm.Session
@@ -65,12 +100,19 @@ def chat_tracker(event, db, conn):
         event.content = "\x01ACTION {}\x01".format(event.content)
 
     message_time = time.time()
-    track_seen(event, db, conn)
+
+    if event.type is EventType.join or \
+       event.type is EventType.part or \
+       event.type is EventType.quit or \
+       event.type is EventType.kick:
+        track_login(event, db, conn)
+    else:
+        track_seen(event, db, conn)
     track_history(event, message_time, conn)
 
 
 @asyncio.coroutine
-@hook.command(autohelp=False)
+@hook.command(autohelp=False, permissions=["op"])
 def resethistory(event, conn):
     """- resets chat history for the current channel
     :type event: cloudbot.event.Event
@@ -98,21 +140,34 @@ def seen(text, nick, chan, db, event, conn):
     if text.lower() == nick.lower():
         return "Have you looked in a mirror lately?"
 
-    # if not re.match("^[A-Za-z0-9_|.\-\]\[]*$", text.lower()):
-    #     return "I can't look up that name, its impossible to use!"
+    if not re.match("^[A-Za-z0-9_|\^\`.\-\]\[\{\}\\\\]*$", text.lower()):
+        return "I can't look up that name, its impossible to use!"
 
     db_init(db, conn.name)
 
-    last_seen = db.execute("select name, time, quote from seen_user where name like :name and chan = :chan",
-                           {'name': text, 'chan': chan}).fetchone()
+    if '_' not in text:
+        last_seen = db.execute("select time, type, nick, message from history where nick like :nick and chan = :chan", {'nick': text, 'chan': chan}).fetchall()
+    else:
+        last_seen = db.execute("select time, type, nick, message from history where nick like :nick escape :escape and chan = :chan", {'nick': text.replace('_', '\_'), 'chan': chan, 'escape': '\\'}).fetchall()
 
     if last_seen:
-        reltime = timeformat.time_since(last_seen[1])
-        if last_seen[0] != text.lower():  # for glob matching
-            text = last_seen[0]
-        if last_seen[2][0:1] == "\x01":
-            return '{} was last seen {} ago: * {} {}'.format(text, reltime, text, last_seen[2][8:-1])
-        else:
-            return '{} was last seen {} ago saying: {}'.format(text, reltime, last_seen[2])
+        msg = ''
+        for row in last_seen:
+            if row[2] != text.lower():  # for glob matching
+                text = row[2]
+            reltime = timeformat.time_since(row[0])
+            #if row[1] is 'join':
+            #    msg += '{} last joined {} ago. '.format(text, reltime)
+            if row[1] == 'message':
+                if row[3][0:1] == "\x01":
+                    msg += '{} was last seen {} ago: * {} {}. '.format(text, reltime, text, row[3][8:-1])
+                else:
+                    msg += '{} was last seen {} ago saying: {}. '.format(text, reltime, row[3])
+            #if row[1] is 'part':
+            #    msg += '{} last parted {} ago saying {}. '.format(text, reltime, row[3])
+            #elif row[1] is 'quit':
+            #    msg += '{} last quit {} ago saying {}. '.format(text, reltime, row[3])
+        if msg != '':
+            return msg
     else:
         return "I've never seen {} talking in this channel.".format(text)

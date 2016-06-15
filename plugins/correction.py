@@ -14,9 +14,11 @@ def correction(match, conn, nick, chan, message):
     :type conn: cloudbot.client.Client
     :type chan: str
     """
-    groups = [b.replace("\/", "/") for b in re.split(r"(?<!\\)/", match.groups()[0])]
+    groups = [b.replace("\/", "/") for b in re.split(r"(?<!\\)/", match.groups()[0])]       
     find = groups[0]
     replace = groups[1]
+    if replace and not find:
+        return "I can't replace that"
     if find == replace:
         return "really dude? you want me to replace {} with {}?".format(find, replace)
 

@@ -10,7 +10,7 @@ from sqlalchemy.sql import select
 
 from cloudbot import hook
 from cloudbot.event import EventType
-from cloudbot.util import database
+from cloudbot.util import database, timeformat
 
 duck_tail = "・゜゜・。。・゜゜"
 duck = ["\_o< ", "\_O< ", "\_0< ", "\_\u00f6< ", "\_\u00f8< ", "\_\u00f3< "]
@@ -84,7 +84,7 @@ def incrementMsgCounter(event, conn):
         if event.host not in game_status[conn.name][event.chan]['masks']:
             game_status[conn.name][event.chan]['masks'].append(event.host)
 
-@hook.command("starthunt", autohelp=False)
+@hook.command("starthunt", permissions=["gameop"], autohelp=False)
 def start_hunt(bot, chan, message, conn):
     """This command starts a duckhunt in your channel, to stop the hunt use .stophunt"""
     global game_status
@@ -102,7 +102,8 @@ def start_hunt(bot, chan, message, conn):
 
 def set_ducktime(chan, conn):
     global game_status
-    game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
+    game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 240, int(time()) + 1800)
+    #game_status[conn.name][chan]['next_duck_time'] = random.randint(int(time()) + 480, int(time()) + 3600)
     #game_status[conn.name][chan]['flyaway'] = game_status[conn.name][chan]['next_duck_time'] + 600
     game_status[conn.name][chan]['duck_status'] = 0
     # let's also reset the number of messages said and the list of masks that have spoken.
@@ -110,7 +111,7 @@ def set_ducktime(chan, conn):
     game_status[conn.name][chan]['masks'] = []
     return
 
-@hook.command("stophunt", autohelp=False)
+@hook.command("stophunt", permissions=["gameop"], autohelp=False)
 def stop_hunt(chan, conn):
     """This command stops the duck hunt in your channel. Scores will be preserved"""
     global game_status
@@ -122,7 +123,7 @@ def stop_hunt(chan, conn):
     else:
         return "There is no game running in {}.".format(chan)
 
-@hook.command("duckkick")
+@hook.command("duckkick", permissions=["gameop"])
 def no_duck_kick(text, chan, conn, notice):
     """If the bot has OP or half-op in the channel you can specify .duckkick enable|disable so that people are kicked for shooting or befriending a non-existent goose. Default is off."""
     global game_status
@@ -280,9 +281,10 @@ def bang(nick, chan, message, db, conn, notice):
         else:
             score = 1
             dbadd_entry(nick, chan, db, conn, score, 0)
-        timer = "{:.3f}".format(shoot - deploy)
+        timediff = shoot - deploy
+        stimer = formattimer(timediff)
         duck = "duck" if score == 1 else "ducks"
-        message("{} you shot a duck in {} seconds! You have killed {} {} in {}.".format(nick, timer, score, duck, chan))
+        message("{} you shot a duck in {}! You have killed {} {} in {}.".format(nick, stimer, score, duck, chan))
         set_ducktime(chan, conn)
 
 @hook.command("befriend", autohelp=False)
@@ -337,66 +339,11 @@ def befriend(nick, chan, message, db, conn, notice):
             score = 1
             dbadd_entry(nick, chan, db, conn, 0, score)
         duck = "duck" if score == 1 else "ducks"
-        timer = "{:.3f}".format(shoot - deploy)
-        message("{} you befriended a duck in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score, duck, chan))
+        timediff = shoot - deploy
+        stimer = formattimer(timediff)
+        message("{} you befriended a duck in {}! You have made friends with {} {} in {}.".format(nick, stimer, score, duck, chan))
         set_ducktime(chan,conn)
 
-# @hook.command("save")
-# def save(nick, chan, message, db, conn, notice):
-#     """when a duck has been killed use this command to save the duck."""
-#     global game_status, scripters
-#     if chan in opt_out:
-#         return
-#     network = conn.name
-#     out = ""
-#     score = ""
-#     miss = ["You tried your best to save the duck but it's too late.", "Duck's vital organs were damaged and could not be saved."]
-#     if not game_status[network][chan]['game_on']:
-#         return "There is no hunt right now. Use .starthunt to start a game."
-#     elif game_status[network][chan]['duck_status'] == 1:
-        
-#         # if game_status[network][chan]['no_duck_kick'] == 1:
-#         #     out = "KICK {} {} You tried befriending a non-existent duck, that's really creepy.".format(chan, nick)
-#         #     conn.send(out)
-#         #     return
-#         # return "You tried befriending a non-existent duck, that's really creepy."
-#     else:
-#         game_status[network][chan]['shoot_time'] = time()
-#         deploy = game_status[network][chan]['duck_time']
-#         shoot = game_status[network][chan]['shoot_time']
-#         # if nick.lower() in scripters:
-#         #     if scripters[nick.lower()] > shoot:
-#         #         notice("You are in a cool down period, you can try again in {} seconds.".format(str(scripters[nick.lower()] - shoot)))
-#         #         return
-#         chance = hit_or_miss(deploy, shoot)
-#         if not random.random() <= chance and chance > .05:
-#             out = random.choice(miss) + " You can try again in 7 seconds."
-#             scripters[nick.lower()] = shoot + 7
-#             return out
-#         if chance == .05:
-#             out += "You tried friending that duck in {} seconds, that's mighty fast. Are you sure you aren't a script? Take a 2 hour cool down.".format(str(shoot - deploy))
-#             scripters[nick.lower()] = shoot + 7200
-#             if not random.random() <= chance:
-#                 return random.choice(miss) + " " + out
-#             else:
-#                 message(out)
-
-#         game_status[network][chan]['duck_status'] = 2
-#         score = db.execute(select([table.c.befriend]) \
-#             .where(table.c.network == conn.name) \
-#             .where(table.c.chan == chan.lower()) \
-#             .where(table.c.name == nick.lower())).fetchone()
-#         if score:
-#             score = score[0]
-#             score += 1
-#             dbupdate(nick, chan, db, conn, 0, score)
-#         else:
-#             score = 1
-#             dbadd_entry(nick, chan, db, conn, 0, score)
-#         duck = "duck" if score == 1 else "ducks"
-#         timer = "{:.3f}".format(shoot - deploy)
-#         message("{} you befriended a duck in {} seconds! You have made friends with {} {} in {}.".format(nick, timer, score, duck, chan))
-#         set_ducktime(chan,conn)
 
 def smart_truncate(content, length=320, suffix='...'):
     if len(content) <= length:
@@ -491,7 +438,7 @@ def killers(text, chan, conn, db):
     out = smart_truncate(out)
     return out
 
-@hook.command("duckforgive", permissions=["op", "ignore"])
+@hook.command("duckforgive", permissions=["gameop"])
 def duckforgive(text):
     """Allows people to be removed from the mandatory cooldown period."""
     global scripters
@@ -501,7 +448,7 @@ def duckforgive(text):
     else:
         return "I couldn't find anyone banned from the hunt by that nick"
 
-#@hook.command("hunt_opt_out", permissions=["op", "ignore"], autohelp=False)
+#@hook.command("hunt_opt_out", permissions=["gameop"], autohelp=False)
 def hunt_opt_out(text, chan, db, conn):
     """Running this command without any arguments displays the status of the current channel. hunt_opt_out add #channel will disable all duck hunt commands in the specified channel. hunt_opt_out remove #channel will re-enable the game for the specified channel."""
     if not text:
@@ -535,7 +482,7 @@ def hunt_opt_out(text, chan, db, conn):
         db.commit()
         load_optout(db)
 
-@hook.command("duckmerge", permissions=["botcontrol"])
+@hook.command("duckmerge", permissions=["gameop"])
 def duck_merge(text, conn, db, message):
     """Moves the duck scores from one nick to another nick. Accepts two nicks as input the first will have their duck scores removed the second will have the first score added. Warning this cannot be undone."""
     oldnick, newnick = text.lower().split()
@@ -588,98 +535,6 @@ def duck_merge(text, conn, db, message):
     else:
         return "There are no duck scores to migrate from {}".format(oldnick)
 
-@hook.command("killsmerge", permissions=["botcontrol"])
-def kills_merge(text, conn, db, message):
-    """Moves the duck kill scores from one nick to another nick. Accepts two nicks as input the first will have their duck kill scores removed the second will have the first kill score added. Warning this cannot be undone."""
-    oldnick, newnick = text.lower().split()
-    if not oldnick or not newnick:
-        return "Please specify two nicks for this command."
-    oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == oldnick)).fetchall()
-    newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == newnick)).fetchall()
-    duckmerge = defaultdict(lambda: defaultdict(int))
-    duckmerge["TKILLS"] = 0
-    channelkey = {"update":[], "insert":[]}
-    if oldnickscore:
-        if newnickscore:
-            for row in newnickscore:
-                duckmerge[row["chan"]]["shot"] = row["shot"]
-            for row in oldnickscore:
-                if row["chan"] in duckmerge:
-                    duckmerge[row["chan"]]["shot"] = duckmerge[row["chan"]]["shot"] + row["shot"]
-                    channelkey["update"].append(row["chan"])
-                    duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
-                else:
-                    duckmerge[row["chan"]]["shot"] = row["shot"]
-                    channelkey["insert"].append(row["chan"])
-                    duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
-        else:
-            for row in oldnickscore:
-                duckmerge[row["chan"]]["shot"] = row["shot"]
-                channelkey["insert"].append(row["chan"])
-       # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
-        for channel in channelkey["insert"]:
-            dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["shot"])
-        for channel in channelkey["update"]:
-            dbupdate(newnick, channel, db, conn, duckmerge[channel]["shot"])
-        query = table.delete() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.name == oldnick)
-        db.execute(query)
-        db.commit()
-        message("Migrated {} duck kills from {} to {}".format(duckmerge["TKILLS"], oldnick, newnick))
-    else:
-        return "There are no duck scores to migrate from {}".format(oldnick)
-
-@hook.command("friendsmerge", permissions=["botcontrol"])
-def friends_merge(text, conn, db, message):
-    """Moves the befriend duck scores from one nick to another nick. Accepts two nicks as input the first will have their befriend duck scores removed the second will have the first score added. Warning this cannot be undone."""
-    oldnick, newnick = text.lower().split()
-    if not oldnick or not newnick:
-        return "Please specify two nicks for this command."
-    oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == oldnick)).fetchall()
-    newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.befriend])
-        .where(table.c.network == conn.name)
-        .where(table.c.name == newnick)).fetchall()
-    duckmerge = defaultdict(lambda: defaultdict(int))
-    duckmerge["TFRIENDS"] = 0
-    channelkey = {"update":[], "insert":[]}
-    if oldnickscore:
-        if newnickscore:
-            for row in newnickscore:
-                duckmerge[row["chan"]]["befriend"] = row["befriend"]
-            for row in oldnickscore:
-                if row["chan"] in duckmerge:
-                    duckmerge[row["chan"]]["befriend"] = duckmerge[row["chan"]]["befriend"] + row["befriend"]
-                    channelkey["update"].append(row["chan"])
-                    duckmerge["TFRIENDS"] = duckmerge["TFRIENDS"] + row["befriend"]
-                else:
-                    duckmerge[row["chan"]]["befriend"] = row["befriend"]
-                    channelkey["insert"].append(row["chan"])
-                    duckmerge["TFRIENDS"] = duckmerge["TFRIENDS"] + row["befriend"]
-        else:
-            for row in oldnickscore:
-                duckmerge[row["chan"]]["befriend"] = row["befriend"]
-                channelkey["insert"].append(row["chan"])
-       # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
-        for channel in channelkey["insert"]:
-            dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["befriend"])
-        for channel in channelkey["update"]:
-            dbupdate(newnick, channel, db, conn, duckmerge[channel]["befriend"])
-        query = table.delete() \
-            .where(table.c.network == conn.name) \
-            .where(table.c.name == oldnick)
-        db.execute(query)
-        db.commit()
-        message("Migrated {} duck friends from {} to {}".format(duckmerge["TFRIENDS"], oldnick, newnick))
-    else:
-        return "There are no duck scores to migrate from {}".format(oldnick)         
-
 @hook.command("ducks", autohelp=False)
 def ducks_user(text, nick, chan, conn, db, message):
     """Prints a users duck stats. If no nick is input it will check the calling username."""
@@ -731,3 +586,104 @@ def duck_stats(chan, conn, db, message):
         message("\x02Duck Stats:\x02 {} killed and {} befriended in \x02{}\x02. Across {} channels \x02{}\x02 ducks have been killed and \x02{}\x02 befriended. \x02Top Channels:\x02 \x02{}\x02 with {} kills and \x02{}\x02 with {} friends".format(ducks["chankilled"], ducks["chanfriends"], chan, ducks["chans"], ducks["killed"], ducks["friend"], killerchan, killscore, friendchan, friendscore))
     else:
         return "It looks like there has been no duck activity on this channel or network."
+
+
+def formattimer(t):
+    if t < 60: 
+        return '{} seconds'.format(t)
+    timer = '{:.3f}'.format(t)
+    ft = timer.split('.')
+    st = timeformat.format_time(int(ft[0]), simple=True)
+    return '{} {}ms'.format(st, ft[1])
+
+# @hook.command("killsmerge", permissions=["gameop"])
+# def kills_merge(text, conn, db, message):
+#     """Moves the duck kill scores from one nick to another nick. Accepts two nicks as input the first will have their duck kill scores removed the second will have the first kill score added. Warning this cannot be undone."""
+#     oldnick, newnick = text.lower().split()
+#     if not oldnick or not newnick:
+#         return "Please specify two nicks for this command."
+#     oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
+#         .where(table.c.network == conn.name)
+#         .where(table.c.name == oldnick)).fetchall()
+#     newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.shot, table.c.befriend])
+#         .where(table.c.network == conn.name)
+#         .where(table.c.name == newnick)).fetchall()
+#     duckmerge = defaultdict(lambda: defaultdict(int))
+#     duckmerge["TKILLS"] = 0
+#     channelkey = {"update":[], "insert":[]}
+#     if oldnickscore:
+#         if newnickscore:
+#             for row in newnickscore:
+#                 duckmerge[row["chan"]]["shot"] = row["shot"]
+#             for row in oldnickscore:
+#                 if row["chan"] in duckmerge:
+#                     duckmerge[row["chan"]]["shot"] = duckmerge[row["chan"]]["shot"] + row["shot"]
+#                     channelkey["update"].append(row["chan"])
+#                     duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
+#                 else:
+#                     duckmerge[row["chan"]]["shot"] = row["shot"]
+#                     channelkey["insert"].append(row["chan"])
+#                     duckmerge["TKILLS"] = duckmerge["TKILLS"] + row["shot"]
+#         else:
+#             for row in oldnickscore:
+#                 duckmerge[row["chan"]]["shot"] = row["shot"]
+#                 channelkey["insert"].append(row["chan"])
+#        # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
+#         for channel in channelkey["insert"]:
+#             dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["shot"])
+#         for channel in channelkey["update"]:
+#             dbupdate(newnick, channel, db, conn, duckmerge[channel]["shot"])
+#         query = table.delete() \
+#             .where(table.c.network == conn.name) \
+#             .where(table.c.name == oldnick)
+#         db.execute(query)
+#         db.commit()
+#         message("Migrated {} duck kills from {} to {}".format(duckmerge["TKILLS"], oldnick, newnick))
+#     else:
+#         return "There are no duck scores to migrate from {}".format(oldnick)
+
+# @hook.command("friendsmerge", permissions=["gameop"])
+# def friends_merge(text, conn, db, message):
+#     """Moves the befriend duck scores from one nick to another nick. Accepts two nicks as input the first will have their befriend duck scores removed the second will have the first score added. Warning this cannot be undone."""
+#     oldnick, newnick = text.lower().split()
+#     if not oldnick or not newnick:
+#         return "Please specify two nicks for this command."
+#     oldnickscore = db.execute(select([table.c.name, table.c.chan, table.c.befriend])
+#         .where(table.c.network == conn.name)
+#         .where(table.c.name == oldnick)).fetchall()
+#     newnickscore = db.execute(select([table.c.name, table.c.chan, table.c.befriend])
+#         .where(table.c.network == conn.name)
+#         .where(table.c.name == newnick)).fetchall()
+#     duckmerge = defaultdict(lambda: defaultdict(int))
+#     duckmerge["TFRIENDS"] = 0
+#     channelkey = {"update":[], "insert":[]}
+#     if oldnickscore:
+#         if newnickscore:
+#             for row in newnickscore:
+#                 duckmerge[row["chan"]]["befriend"] = row["befriend"]
+#             for row in oldnickscore:
+#                 if row["chan"] in duckmerge:
+#                     duckmerge[row["chan"]]["befriend"] = duckmerge[row["chan"]]["befriend"] + row["befriend"]
+#                     channelkey["update"].append(row["chan"])
+#                     duckmerge["TFRIENDS"] = duckmerge["TFRIENDS"] + row["befriend"]
+#                 else:
+#                     duckmerge[row["chan"]]["befriend"] = row["befriend"]
+#                     channelkey["insert"].append(row["chan"])
+#                     duckmerge["TFRIENDS"] = duckmerge["TFRIENDS"] + row["befriend"]
+#         else:
+#             for row in oldnickscore:
+#                 duckmerge[row["chan"]]["befriend"] = row["befriend"]
+#                 channelkey["insert"].append(row["chan"])
+#        # TODO: Call dbupdate() and db_add_entry for the items in duckmerge
+#         for channel in channelkey["insert"]:
+#             dbadd_entry(newnick, channel, db, conn, duckmerge[channel]["befriend"])
+#         for channel in channelkey["update"]:
+#             dbupdate(newnick, channel, db, conn, duckmerge[channel]["befriend"])
+#         query = table.delete() \
+#             .where(table.c.network == conn.name) \
+#             .where(table.c.name == oldnick)
+#         db.execute(query)
+#         db.commit()
+#         message("Migrated {} duck friends from {} to {}".format(duckmerge["TFRIENDS"], oldnick, newnick))
+#     else:
+#         return "There are no duck scores to migrate from {}".format(oldnick)         

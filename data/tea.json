@@ -5,8 +5,6 @@
   "parts": {
     "temperature": [
       "hot",
-      "room temperature",
-      "lukewarm",
       "steaming"
     ],
     "size": [

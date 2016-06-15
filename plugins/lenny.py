@@ -14,3 +14,8 @@ def lenny(message, conn):
 def flenny(message):
     """flenny is watching."""
     message(random.choice(flennyface))
+
+@hook.command(autohelp=False)
+def shrug(message):
+    """The shrug ASCII"""
+    message("¯\_(ツ)_/¯")

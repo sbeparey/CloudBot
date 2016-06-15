@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "CloudBot", "CloudBot.pyproj", "{3B39D497-5945-49FE-B568-E6E5BE98DE84}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "bot", "bot.pyproj", "{138FFE00-913E-458F-9325-E7C0A28BC519}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,8 +11,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{3B39D497-5945-49FE-B568-E6E5BE98DE84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3B39D497-5945-49FE-B568-E6E5BE98DE84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{138FFE00-913E-458F-9325-E7C0A28BC519}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{138FFE00-913E-458F-9325-E7C0A28BC519}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

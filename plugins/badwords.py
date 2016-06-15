@@ -4,19 +4,6 @@ import random
 from cloudbot.event import EventType
 from cloudbot import hook
 
-
-cheers = [
-    "FUCK YEAH!",
-    "HOORAH!",
-    "HURRAY!",
-    "OORAH!",
-    "YAY!",
-    "*\o/* CHEERS! *\o/*",
-    "HOOHAH!",
-    "HOOYAH!",
-    "HUAH!",
-    "♪  ┏(°.°)┛  ┗(°.°)┓ ♬"
-    ]
 db_ready = []
 
 
@@ -24,8 +11,8 @@ def db_init(db, conn_name):
     """Make sure that the badwords table exists. Connection name is for caching the result per connection."""
     global db_ready
     if db_ready.count(conn_name) < 1:
-        db.execute(
-            "create table if not exists badwords(word, nick, chan, PRIMARY KEY(word, chan))")
+        db.execute("create table if not exists badwords(word, nick, chan, PRIMARY KEY(word, chan))")
+        db.execute("create table if not exists user_reputation(chan, nick, reputation, offense_count, last_offense, PRIMARY KEY(chan, nick))")
         db.commit()
         db_ready.append(conn_name)
 
@@ -46,7 +33,7 @@ def load_bad(db, conn):
 
 
 @hook.command("addbad", permissions=["badwords"], autohelp=False)
-def add_bad(text, nick, db, conn):
+def add_bad(text, nick, db, conn, notice):
     """adds a bad word to the auto kick list must specify a channel with each word"""
     global blacklist, black_re, blacklist
     db_init(db, conn.name)
@@ -55,7 +42,7 @@ def add_bad(text, nick, db, conn):
     if not channel.startswith('#'):
         return "Please specify a valid channel name after the bad word."
     word = re.escape(word)
-    wordlist = list_bad(channel, db, conn)
+    wordlist = list_bad(channel, db, conn, notice)
     if word in wordlist:
         return "{} is already added to the bad word list for {}".format(
             word,
@@ -99,7 +86,7 @@ def del_bad(text, nick, db, conn):
 
 
 @hook.command("listbad", permissions=["badwords"], autohelp=False)
-def list_bad(text, db, conn):
+def list_bad(text, db, conn, notice):
     """Returns a list of bad words specify a channel to see words for a particular channel"""
     db_init(db, conn)
     text = text.split(' ')[0].lower()
@@ -111,7 +98,7 @@ def list_bad(text, db, conn):
             "chan": text}).fetchall()
     for word in words:
         out = out + "{}|".format(word[0])
-    return out[:-1]
+    notice(out[:-1])
 
 
 @hook.event([EventType.message, EventType.action], singlethread=True)
@@ -120,34 +107,13 @@ def test_badwords(event, db, conn, message):
     if match:
         # Check to see if the match is for this channel
         word = match.group().lower().strip()
-        check = db.execute(
-            "select word, nick from badwords where word = :word and chan = :chan", {
-                "word": word, "chan": event.chan}).fetchone()
-        if (check) or ((word == "fap") and (event.chan == "#conversations")):
-            out = "KICK {} {} :that fucking word is so damn offensive".format(
-                event.chan,
-                event.nick)
-            message(
-                "{}, congratulations you've won!".format(
-                    event.nick),
-                event.chan)
+        check = db.execute("select word, nick from badwords where word = :word and chan = :chan", {
+            "word": word, "chan": event.chan}).fetchone()
+        if check:
+            reputation = db.execute("select reputation, last_offense from user_reputation where chan = :chan and :nick = :nick", {
+                "chan": event.chan, "nick": event.nick}).fetchone()
+            out = "KICK {} {} :that word is offensive".format(event.chan, event.nick)
+            # message("{}, congratulations you've won!".format(event.nick), event.chan)
             conn.send(out)
         else:
             pass
-
-
-
-
-cheer_re = re.compile('\\\\o\/', re.IGNORECASE)
-
-
-@hook.regex(cheer_re)
-def cheer(match, conn, nick, chan, message):
-    """
-    :type match: re.__Match
-    :type conn: cloudbot.client.Client
-    :type chan: str
-    """
-    if chan not in ["#yogscast"]:
-        shit = random.choice(cheers)
-        message(shit, chan)

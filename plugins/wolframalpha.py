@@ -36,14 +36,18 @@ def wolframalpha(text, bot):
     short_url = web.try_shorten(query_url.format(urllib.parse.quote_plus(text)))
 
     pod_texts = []
-    for pod in result.xpath("//pod[@primary='true']"):
+    for pod in result.xpath("//pod[@primary='true']|//pod[@scanner='IslamicPrayer']"):
         title = pod.attrib['title']
         if pod.attrib['id'] == 'Input':
             continue
 
         results = []
         for subpod in pod.xpath('subpod/plaintext/text()'):
-            subpod = subpod.strip().replace('\\n', '; ')
+            if result.xpath("//pod[@scanner='IslamicPrayer']"):
+                subpod = subpod.strip().replace(' | ', ': ')
+                subpod = subpod.strip().replace('\n', ', ')
+            else:
+                subpod = subpod.strip().replace('\n', '; ')
             subpod = re.sub(r'\s+', ' ', subpod)
             if subpod:
                 results.append(subpod)
