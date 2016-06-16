@@ -61,3 +61,6 @@ config.json
 
 # Visual Studio
 /.vs/
+
+# sftp
+sftp-config.json

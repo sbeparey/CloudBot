@@ -1,7 +1,9 @@
+import bs4
+import requests
 import re
 from collections import defaultdict
 from cloudbot import hook
-from cloudbot.util import http
+from cloudbot.util import http, web
 
 search_pages = defaultdict(list)
 
@@ -202,3 +204,26 @@ def wnbaScores(chan, text=" "):
     if len(search_pages[chan]) > 1:
         return "{}(page {}/{}) .morescore".format(game, search_pages[chan+"index"] + 1, len(search_pages[chan]))
     return(game)
+
+@hook.command('cricket', autohelp=False)
+def cricket(nick, message, conn):
+    """Get live cricket scores from ESPN Cric Info"""
+    livescores = 'http://static.cricinfo.com/rss/livescores.xml'
+    response = requests.get(livescores)
+    r = bs4.BeautifulSoup(response.text)
+    timestamp = r.rss.channel.pubdate.text
+    msg = '({}) {} for {}: '.format(nick, r.title.text, timestamp)
+    i = 1
+
+    for item in r.find_all('item'):
+        title = item.title.text
+        if '*' in title:
+            url = item.guid.text
+            site = requests.get(url)
+            s = bs4.BeautifulSoup(site.text)
+            overs = '({}) '.format(s.title.text.split(',')[0].split('(')[1])
+            star_index = title.index('*')
+            title = title[:star_index] + overs + title[star_index:]
+            msg += '({}) {} {}'.format(i, title, web.shorten(url))
+            i += 1
+    message(msg)
