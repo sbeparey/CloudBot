@@ -25,6 +25,7 @@ irc_command_to_event_type = {
     "PRIVMSG": EventType.message,
     "JOIN": EventType.join,
     "PART": EventType.part,
+    "NICK": EventType.nick,
     "KICK": EventType.kick,
     "QUIT": EventType.quit,
     "NOTICE": EventType.notice
