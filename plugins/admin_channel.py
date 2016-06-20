@@ -1,5 +1,10 @@
-from cloudbot import hook
+import requests
+import json
+from datetime import date, timedelta
+from os import listdir
 
+from cloudbot import hook
+from cloudbot.util import web
 
 def mode_cmd(mode, text, text_inp, chan, conn, notice):
     """ generic mode setting function """
@@ -161,6 +166,42 @@ def unlock(text, conn, chan, notice):
     """[channel] - unlocks [channel], or in the caller's channel if no channel is specified"""
     mode_cmd_no_target("-i", "unlock", text, chan, conn, notice)
 
-@hook.irc_raw('311', autohelp=False)
-def user_whois(irc_paramlist):
-    print(irc_paramlist)
+#@hook.irc_raw('311', autohelp=False)
+#def user_whois(irc_paramlist):
+#    print(irc_paramlist)
+
+@hook.command('getlog', permissions=["log"], autohelp=False)
+def getlog(bot, chan, text, notice):
+    """<command> - grabs the log for a particular channel <command>
+    :type text: str
+    :type bot: cloudbot.bot.CloudBot
+    """
+    text = text.strip().lower()
+    today = date.today()
+    yesterday = today - timedelta(1)
+
+    if not text or text == 'today':
+        file_name = 'snoonet_{}_{}.log'.format(chan, today.strftime('%Y%m%d'))
+        year = today.year
+    elif text == 'yesterday':
+        year = yesterday.year
+        file_name = 'snoonet_{}_{}.log'.format(chan, yesterday.strftime('%Y%m%d'))
+    elif text.isdigit():
+        file_name = 'snoonet_{}_{}.log'.format(chan, text)
+        year = text[:4]
+    else:
+        notice("Invalid date format.")
+
+    try:
+        if file_name and file_name in listdir('logs/{}'.format(year)):
+            with open('logs/{}/{}'.format(year, file_name)) as f:
+                data = f.read()
+                hb = 'http://hastebin.com'
+                r = requests.post('{}/documents'.format(hb), data=data)
+                j = r.json()
+                if r.status_code is requests.codes.ok:
+                    notice('{}/{}'.format(hb, j['key']))
+                else:
+                    raise ServiceError(j['message'], r)
+    except:
+        notice("Could not find the specified log.")
