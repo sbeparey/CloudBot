@@ -51,6 +51,30 @@ def format_event(event):
     :rtype: str
     """
 
+    # fixing event.chan issue
+
+    if event.type == EventType.join and event.chan is None:
+        if event.irc_raw:
+            try:
+                raw = event.irc_raw.split(':')
+                if raw[-1].startswith('#'):
+                    event.chan = raw[-1].lower()
+                elif raw[1] and raw[1].startswith('#'):
+                    event.chan = raw[1].lower()
+                elif raw[2] and raw[2].startswith('#'):
+                    event.chan = raw[2].lower()
+            except:
+                pass
+
+    # fixing nick change issue
+
+    if event.type == EventType.nick and event.content is None:
+        if event.irc_raw:
+            try:
+                event.content = event.irc_raw.split(' ')[-1]
+            except:
+                pass
+
     # Setup arguments
 
     args = {
