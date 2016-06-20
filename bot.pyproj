@@ -125,7 +125,6 @@
     <Compile Include="plugins\attacks.py" />
     <Compile Include="plugins\badwords.py" />
     <Compile Include="plugins\cats.py" />
-    <Compile Include="plugins\chatbot.py" />
     <Compile Include="plugins\cheers.py" />
     <Compile Include="plugins\core_ctcp.py" />
     <Compile Include="plugins\core_misc.py" />
@@ -134,7 +133,6 @@
     <Compile Include="plugins\correction.py" />
     <Compile Include="plugins\cryptocurrency.py" />
     <Compile Include="plugins\cypher.py" />
-    <Compile Include="plugins\dig.py" />
     <Compile Include="plugins\duckhunt.py" />
     <Compile Include="plugins\eightball.py" />
     <Compile Include="plugins\etymology.py" />
@@ -162,10 +160,7 @@
     <Compile Include="plugins\link_announcer.py" />
     <Compile Include="plugins\locate.py" />
     <Compile Include="plugins\log.py" />
-    <Compile Include="plugins\lurve.py" />
-    <Compile Include="plugins\metacritic.py" />
     <Compile Include="plugins\monsterhunt.py" />
-    <Compile Include="plugins\mylife.py" />
     <Compile Include="plugins\name_generator.py" />
     <Compile Include="plugins\newegg.py" />
     <Compile Include="plugins\notes.py" />
@@ -173,7 +168,6 @@
     <Compile Include="plugins\password.py" />
     <Compile Include="plugins\ping.py" />
     <Compile Include="plugins\plpaste.py" />
-    <Compile Include="plugins\poll.py" />
     <Compile Include="plugins\profiling.py" />
     <Compile Include="plugins\python.py" />
     <Compile Include="plugins\quran.py" />
@@ -200,7 +194,6 @@
     <Compile Include="plugins\turkeyhunt.py" />
     <Compile Include="plugins\twitch.py" />
     <Compile Include="plugins\twitter.py" />
-    <Compile Include="plugins\urban.py" />
     <Compile Include="plugins\utility.py" />
     <Compile Include="plugins\vimeo.py" />
     <Compile Include="plugins\weather.py" />
