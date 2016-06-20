@@ -14,9 +14,10 @@ class EventType(enum.Enum):
     notice = 2
     join = 3
     part = 4
-    kick = 5
-    quit = 6
-    other = 7
+    nick = 5
+    kick = 6
+    quit = 7
+    other = 8
 
 
 class Event:
